@@ -80,7 +80,10 @@ impl Results {
         };
 
         let flags = ResultFlags::new(zero, negativ, overflow, carry);
-        let values = ResultValue::new(uresult, sresult);
+        let mut values = ResultValue::new(uresult, sresult);
+
+        values.hex = (&values.hex[values.hex.len() - 1..]).to_string();
+        values.bin = (&values.bin[values.bin.len() - 4..]).to_string();
 
         Self { flags, values }
     }
