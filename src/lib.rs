@@ -59,12 +59,16 @@ pub struct Results {
     values: ResultValue,
 }
 
-const NIBBLE: u8 = 0xF;
-const MAX_I4: u8 = 7;
+const NIBBLE_U8: u8 = 0xF;
+const NIBBLE_I8: i8 = 0xF;
+const MAX_I4_U: u8 = 7;
+const MAX_I4_I: i8 = 7;
+const MIN_I4_I: i8 = -8;
 
 fn to_i4(val: u8) -> i8 {
-    let res = if val > MAX_I4 {
-        (NIBBLE << 4) | val
+    let val = val & NIBBLE_U8;
+    let res = if val > MAX_I4_U {
+        (NIBBLE_U8 << 4) | val
     } else {
         val
     };
@@ -78,16 +82,36 @@ mod subtraction {
         let mut flags = res.get_mut_flags();
         // ((si_b > 0 && si_a < INT_MIN + si_b) ||
         // (si_b < 0 && si_a > INT_MAX + si_b))
-        todo!()
+
+        let cleft = to_i4(left as u8 & NIBBLE_U8);
+        let cright = to_i4(right as u8 & NIBBLE_U8);
+
+        flags.overflow = {
+            (cright > 0 && cleft < MIN_I4_I + cright) ||
+            (cright < 0 && cleft > MAX_I4_I + cright)
+        };
     }
+
     pub(crate) fn new8(left: i32, right: i32, res: &mut Results) {
-        todo!()
+        let mut flags = res.get_mut_flags();
+        let ileft = left as i8;
+        let iright = right as i8;
+        let (_, overflow) = ileft.overflowing_sub(iright);
+        flags.overflow = overflow;
     }
+    
     pub(crate) fn new16(left: i32, right: i32, res: &mut Results) {
-        todo!()
+        let mut flags = res.get_mut_flags();
+        let ileft = left as i16;
+        let iright = right as i16;
+        let (_, overflow) = ileft.overflowing_sub(iright);
+        flags.overflow = overflow;
     }
+    
     pub(crate) fn new32(left: i32, right: i32, res: &mut Results) {
-        todo!()
+        let mut flags = res.get_mut_flags();
+        let (_, overflow) = left.overflowing_sub(right);
+        flags.overflow = overflow;
     }
 }
 
@@ -95,15 +119,15 @@ mod addition {
     use super::*;
 
     pub(crate) fn new4(left: i32, right: i32) -> Results {
-        let cleft = left as u8 & NIBBLE;
-        let cright = right as u8 & NIBBLE;
+        let cleft = left as u8 & NIBBLE_U8;
+        let cright = right as u8 & NIBBLE_U8;
 
         let tresult = cleft + cright;
-        let uresult = tresult & NIBBLE;
+        let uresult = tresult & NIBBLE_U8;
         let sresult = to_i4(uresult);
 
         let carry = tresult >> 4 == 1;
-        let negativ = uresult > MAX_I4;
+        let negativ = uresult > MAX_I4_U;
         let zero = uresult == 0;
 
         let overflow = {
