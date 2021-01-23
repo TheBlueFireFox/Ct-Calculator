@@ -1,9 +1,6 @@
 mod utils;
 
-use std::{
-    fmt::{Binary, Display, UpperHex},
-    ops::Add,
-};
+use std::fmt::{Binary, Display, UpperHex};
 
 use wasm_bindgen::prelude::*;
 
@@ -23,34 +20,24 @@ pub fn greet() {
     alert("Hello, ct-calculator!");
 }
 
-#[wasm_bindgen]
-pub fn sub(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
-    // transform right to it's complement
-    let right = !right + 1;
-    let mut res = add(left, right, of)?;
-
-    // special case for overflows
-    match of {
-        4 => subtraction::new4(left, right, &mut res),
-        8 => subtraction::new8(left, right, &mut res),
-        16 => subtraction::new16(left, right, &mut res),
-        32 => subtraction::new32(left, right, &mut res),
-        _ => {} // this has already been checked earlier
-    }
-
-    Ok(res)
+macro_rules! func {
+    ($name:tt, $path:tt) => {
+        #[wasm_bindgen]
+        pub fn $name(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
+            match of {
+                4 => Ok($path::new4(left, right)),
+                8 => Ok($path::new8(left, right)),
+                16 => Ok($path::new16(left, right)),
+                32 => Ok($path::new32(left, right)),
+                _ => Err(JsValue::from("unsupported value")),
+            }
+        }
+    };
 }
 
-#[wasm_bindgen]
-pub fn add(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
-    match of {
-        4 => Ok(addition::new4(left, right)),
-        8 => Ok(addition::new8(left, right)),
-        16 => Ok(addition::new16(left, right)),
-        32 => Ok(addition::new32(left, right)),
-        _ => Err(JsValue::from("unsupported value")),
-    }
-}
+func!(sub, subtraction);
+
+func!(add, addition);
 
 #[wasm_bindgen]
 #[derive(Debug)]
@@ -60,7 +47,6 @@ pub struct Results {
 }
 
 const NIBBLE_U8: u8 = 0xF;
-const NIBBLE_I8: i8 = 0xF;
 const MAX_I4_U: u8 = 7;
 const MAX_I4_I: i8 = 7;
 const MIN_I4_I: i8 = -8;
@@ -78,7 +64,11 @@ fn to_i4(val: u8) -> i8 {
 mod subtraction {
     use super::*;
 
-    pub(crate) fn new4(left: i32, right: i32, res: &mut Results) {
+    pub(crate) fn new4(left: i32, right: i32) -> Results {
+        // transform right to it's complement
+        let right = !right + 1;
+
+        let mut res = addition::new4(left, right);
         let mut flags = res.get_mut_flags();
         // ((si_b > 0 && si_a < INT_MIN + si_b) ||
         // (si_b < 0 && si_a > INT_MAX + si_b))
@@ -87,36 +77,79 @@ mod subtraction {
         let cright = to_i4(right as u8 & NIBBLE_U8);
 
         flags.overflow = {
-            (cright > 0 && cleft < MIN_I4_I + cright) ||
-            (cright < 0 && cleft > MAX_I4_I + cright)
+            (cright > 0 && cleft < (MIN_I4_I + cright))
+                || (cright < 0 && cleft > (MAX_I4_I + cright))
+        };
+        res
+    }
+
+    macro_rules! new {
+        ($name:tt, $type:ty) => {
+            pub(crate) fn $name(left: i32, right: i32) -> Results {
+                // transform right to it's complement
+                let right = !right + 1;
+
+                let mut res = addition::$name(left, right);
+                let mut flags = res.get_mut_flags();
+                let ileft = left as $type;
+                let iright = right as $type;
+                let (_, overflow) = ileft.overflowing_sub(iright);
+                flags.overflow = overflow;
+                res
+            }
         };
     }
 
-    pub(crate) fn new8(left: i32, right: i32, res: &mut Results) {
-        let mut flags = res.get_mut_flags();
-        let ileft = left as i8;
-        let iright = right as i8;
-        let (_, overflow) = ileft.overflowing_sub(iright);
-        flags.overflow = overflow;
-    }
-    
-    pub(crate) fn new16(left: i32, right: i32, res: &mut Results) {
-        let mut flags = res.get_mut_flags();
-        let ileft = left as i16;
-        let iright = right as i16;
-        let (_, overflow) = ileft.overflowing_sub(iright);
-        flags.overflow = overflow;
-    }
-    
-    pub(crate) fn new32(left: i32, right: i32, res: &mut Results) {
-        let mut flags = res.get_mut_flags();
-        let (_, overflow) = left.overflowing_sub(right);
-        flags.overflow = overflow;
-    }
+    new!(new8, i8);
+    new!(new16, i16);
+    new!(new32, i32);
 }
 
 mod addition {
+    use std::convert::TryInto;
+
     use super::*;
+
+    macro_rules! new {
+        ($name:tt, $main_type:ty, $second_type:ty, $parent_type:ty) => {
+            pub(crate) fn $name(left: i32, right: i32) -> Results {
+                let ileft = left as $main_type;
+                let iright = right as $main_type;
+                let carry = {
+                    // build u16 for addition (extend with zeros)
+
+                    let transform = |data: $main_type| {
+                        let bytes = data.to_be_bytes();
+
+                        let mut parts = [0; std::mem::size_of::<$parent_type>()];
+
+                        let size = std::mem::size_of::<$parent_type>();
+
+                        parts[(size - bytes.len() - 1)..].copy_from_slice(&bytes);
+
+                        <$parent_type>::from_be_bytes(
+                            (&parts[..])
+                                .try_into()
+                                .expect("This should be sound, as I am doing calculations before."),
+                        )
+                    };
+
+                    let left_u16 = transform(ileft);
+                    let right_u16 = transform(iright);
+
+                    let res = left_u16 + right_u16;
+                    res >> (std::mem::size_of::<$main_type>() * 8) == 1
+                };
+                let (uresult, overflow) = ileft.overflowing_add(iright);
+                let zero = uresult == 0;
+                let negativ = uresult > (<$second_type>::MAX as $main_type);
+                let sresult = uresult as i32;
+                let flags = ResultFlags::new(zero, negativ, overflow, carry);
+                let values = ResultValue::new(uresult, sresult);
+                Results { flags, values }
+            }
+        };
+    }
 
     pub(crate) fn new4(left: i32, right: i32) -> Results {
         let cleft = left as u8 & NIBBLE_U8;
@@ -161,85 +194,9 @@ mod addition {
         Results { flags, values }
     }
 
-    pub(crate) fn new8(left: i32, right: i32) -> Results {
-        let ileft = left as u8;
-        let iright = right as u8;
-        let carry = {
-            // build u16 for addition (extend with zeros)
-            let left_u16 = u16::from_be_bytes([0, ileft]);
-            let right_u16 = u16::from_be_bytes([0, iright]);
-            let res = left_u16 + right_u16;
-            res >> 8 == 1
-        };
-        let (uresult, overflow) = ileft.overflowing_add(iright);
-        let zero = uresult == 0;
-        let negativ = uresult > (i8::MAX as u8);
-        let sresult = uresult as i8;
-        let flags = ResultFlags::new(zero, negativ, overflow, carry);
-        let values = ResultValue::new(uresult, sresult);
-        Results { flags, values }
-    }
-
-    pub(crate) fn new16(left: i32, right: i32) -> Results {
-        let ileft = left as u16;
-        let iright = right as u16;
-        let carry = {
-            // build u16 for addition (extend with zeros)
-            let left_bytes = ileft.to_be_bytes();
-            let right_bytes = iright.to_be_bytes();
-            let left_u16 = u32::from_be_bytes([0, 0, left_bytes[0], left_bytes[1]]);
-            let right_u16 = u32::from_be_bytes([0, 0, right_bytes[0], right_bytes[1]]);
-            let res = left_u16 + right_u16;
-            res >> 16 == 1
-        };
-
-        let (uresult, overflow) = ileft.overflowing_add(iright);
-        let zero = uresult == 0;
-        let negativ = uresult > (i16::MAX as u16);
-        let sresult = uresult as i16;
-        let flags = ResultFlags::new(zero, negativ, overflow, carry);
-        let values = ResultValue::new(uresult, sresult);
-        Results { flags, values }
-    }
-
-    pub(crate) fn new32(left: i32, right: i32) -> Results {
-        let ileft = left as u32;
-        let iright = right as u32;
-        let carry = {
-            // build u16 for addition (extend with zeros)
-            let left_bytes = ileft.to_be_bytes();
-            let right_bytes = iright.to_be_bytes();
-            let left_u16 = u64::from_be_bytes([
-                0,
-                0,
-                0,
-                0,
-                left_bytes[0],
-                left_bytes[1],
-                left_bytes[2],
-                left_bytes[3],
-            ]);
-            let right_u16 = u64::from_be_bytes([
-                0,
-                0,
-                0,
-                0,
-                right_bytes[0],
-                right_bytes[1],
-                right_bytes[2],
-                right_bytes[3],
-            ]);
-            let res = left_u16 + right_u16;
-            res >> 32 == 1
-        };
-        let (uresult, overflow) = ileft.overflowing_add(iright);
-        let zero = uresult == 0;
-        let negativ = uresult > (i32::MAX as u32);
-        let sresult = uresult as i32;
-        let flags = ResultFlags::new(zero, negativ, overflow, carry);
-        let values = ResultValue::new(uresult, sresult);
-        Results { flags, values }
-    }
+    new!(new8, u8, i8, u16);
+    new!(new16, u16, i16, u32);
+    new!(new32, u32, i32, u64);
 }
 
 #[wasm_bindgen]
