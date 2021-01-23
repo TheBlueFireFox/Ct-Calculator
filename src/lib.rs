@@ -20,24 +20,24 @@ pub fn greet() {
     alert("Hello, ct-calculator!");
 }
 
-#[wasm_bindgen]
-pub fn sub(left:i32, right: i32, of: i32) -> Result<Results, JsValue> {
-    // transform right to it's complement
-    let right = !right + 1;
-
-    add(left, right, of)
+macro_rules! func {
+    ($name:tt, $path:tt) => {
+        #[wasm_bindgen]
+        pub fn $name(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
+            match of {
+                4 => Ok($path::new4(left, right)),
+                8 => Ok($path::new8(left, right)),
+                16 => Ok($path::new16(left, right)),
+                32 => Ok($path::new32(left, right)),
+                _ => Err(JsValue::from("unsupported value")),
+            }
+        }
+    };
 }
 
-#[wasm_bindgen]
-pub fn add(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
-    match of {
-        4 => Ok(Results::new4(left, right)),
-        8 => Ok(Results::new8(left, right)),
-        16 => Ok(Results::new16(left, right)),
-        32 => Ok(Results::new32(left, right)),
-        _ => Err(JsValue::from("unsupported value")),
-    }
-}
+func!(sub, subtraction);
+
+func!(add, addition);
 
 #[wasm_bindgen]
 #[derive(Debug)]
@@ -46,37 +46,143 @@ pub struct Results {
     values: ResultValue,
 }
 
-#[wasm_bindgen]
-impl Results {
-    fn new4(left: i32, right: i32) -> Self {
-        const NIBBLE: u8 = 0xF;
-        const MAX_I4: u8 = 7;
+const NIBBLE_U8: u8 = 0xF;
+const MAX_I4_U: u8 = 7;
+const MAX_I4_I: i8 = 7;
+const MIN_I4_I: i8 = -8;
 
-        let cleft = left as u8 & NIBBLE;
-        let cright = right as u8 & NIBBLE;
+fn to_i4(val: u8) -> i8 {
+    let val = val & NIBBLE_U8;
+    let res = if val > MAX_I4_U {
+        (NIBBLE_U8 << 4) | val
+    } else {
+        val
+    };
+    res as i8
+}
+
+mod subtraction {
+    use super::*;
+
+    pub(crate) fn new4(left: i32, right: i32) -> Results {
+        // transform right to it's complement
+        let right = !right + 1;
+
+        let mut res = addition::new4(left, right);
+        let mut flags = res.get_mut_flags();
+        // ((si_b > 0 && si_a < INT_MIN + si_b) ||
+        // (si_b < 0 && si_a > INT_MAX + si_b))
+
+        let cleft = to_i4(left as u8 & NIBBLE_U8);
+        let cright = to_i4(right as u8 & NIBBLE_U8);
+
+        flags.overflow = {
+            (cright > 0 && cleft < (MIN_I4_I + cright))
+                || (cright < 0 && cleft > (MAX_I4_I + cright))
+        };
+        res
+    }
+
+    macro_rules! new {
+        ($name:tt, $type:ty) => {
+            pub(crate) fn $name(left: i32, right: i32) -> Results {
+                // transform right to it's complement
+                let right = !right + 1;
+
+                let mut res = addition::$name(left, right);
+                let mut flags = res.get_mut_flags();
+                let ileft = left as $type;
+                let iright = right as $type;
+                let (_, overflow) = ileft.overflowing_sub(iright);
+                flags.overflow = overflow;
+                res
+            }
+        };
+    }
+
+    new!(new8, i8);
+    new!(new16, i16);
+    new!(new32, i32);
+}
+
+mod addition {
+    use std::convert::TryInto;
+
+    use super::*;
+
+    macro_rules! new {
+        ($name:tt, $main_type:ty, $second_type:ty, $parent_type:ty) => {
+            pub(crate) fn $name(left: i32, right: i32) -> Results {
+                let ileft = left as $main_type;
+                let iright = right as $main_type;
+                let carry = {
+                    // build u16 for addition (extend with zeros)
+
+                    let transform = |data: $main_type| {
+                        let bytes = data.to_be_bytes();
+
+                        let mut parts = [0; std::mem::size_of::<$parent_type>()];
+
+                        let size = std::mem::size_of::<$parent_type>();
+
+                        parts[(size - bytes.len() - 1)..].copy_from_slice(&bytes);
+
+                        <$parent_type>::from_be_bytes(
+                            (&parts[..])
+                                .try_into()
+                                .expect("This should be sound, as I am doing calculations before."),
+                        )
+                    };
+
+                    let left_u16 = transform(ileft);
+                    let right_u16 = transform(iright);
+
+                    let res = left_u16 + right_u16;
+                    res >> (std::mem::size_of::<$main_type>() * 8) == 1
+                };
+                let (uresult, overflow) = ileft.overflowing_add(iright);
+                let zero = uresult == 0;
+                let negativ = uresult > (<$second_type>::MAX as $main_type);
+                let sresult = uresult as i32;
+                let flags = ResultFlags::new(zero, negativ, overflow, carry);
+                let values = ResultValue::new(uresult, sresult);
+                Results { flags, values }
+            }
+        };
+    }
+
+    pub(crate) fn new4(left: i32, right: i32) -> Results {
+        let cleft = left as u8 & NIBBLE_U8;
+        let cright = right as u8 & NIBBLE_U8;
 
         let tresult = cleft + cright;
-        let uresult = tresult & NIBBLE;
-        let sresult = if uresult > 7 {
-            (NIBBLE << 4) | uresult
-        } else {
-            uresult
-        } as i8;
+        let uresult = tresult & NIBBLE_U8;
+        let sresult = to_i4(uresult);
 
         let carry = tresult >> 4 == 1;
-        let negativ = uresult > MAX_I4;
+        let negativ = uresult > MAX_I4_U;
         let zero = uresult == 0;
 
         let overflow = {
             // 1)  Calculate sum
             // 2)  Check for conditions
-            //     If both numbers are positive and sum is negative then 
+            //     If both numbers are positive and sum is negative then
             //        return true
-            //     Else If both numbers are negative and sum is positive then 
+            //     Else If both numbers are negative and sum is positive then
             //        return true
-            //     Else 
+            //     Else
             //        return false
-           (left >= 0 && right >= 0 && sresult < 0) || (left < 0 && right < 0 && sresult >= 0)
+            // works only for addition :-(
+            (left >= 0 && right >= 0 && sresult < 0) || (left < 0 && right < 0 && sresult >= 0)
+
+            // doesn't work
+            // const MAX_I4_S: i8 = 0x7;
+            // const MIN_I4_S: i8 = 0xF;
+            // const NIBBLE_S : i8 = 0xF;
+            // let si_b = right as i8 & NIBBLE_S;
+            // let si_a = left as i8 & NIBBLE_S;
+            // (si_b > 0 && si_a < MIN_I4_S + si_b)
+            //     || (si_b < 0) && (si_a > MAX_I4_S + si_b)
         };
 
         let flags = ResultFlags::new(zero, negativ, overflow, carry);
@@ -85,87 +191,18 @@ impl Results {
         values.hex = (&values.hex[values.hex.len() - 1..]).to_string();
         values.bin = (&values.bin[values.bin.len() - 4..]).to_string();
 
-        Self { flags, values }
+        Results { flags, values }
     }
 
-    fn new8(left: i32, right: i32) -> Self {
-        let ileft = left as u8;
-        let iright = right as u8;
-        let carry = {
-            // build u16 for addition (extend with zeros)
-            let left_u16 = u16::from_be_bytes([0, ileft]);
-            let right_u16 = u16::from_be_bytes([0, iright]);
-            let res = left_u16 + right_u16;
-            res >> 8 == 1
-        };
-        let (uresult, overflow) = ileft.overflowing_add(iright);
-        let zero = uresult == 0;
-        let negativ = uresult > (i8::MAX as u8);
-        let sresult = uresult as i8;
-        let flags = ResultFlags::new(zero, negativ, overflow, carry);
-        let values = ResultValue::new(uresult, sresult);
-        Self { flags, values }
-    }
+    new!(new8, u8, i8, u16);
+    new!(new16, u16, i16, u32);
+    new!(new32, u32, i32, u64);
+}
 
-    fn new16(left: i32, right: i32) -> Self {
-        let ileft = left as u16;
-        let iright = right as u16;
-        let carry = {
-            // build u16 for addition (extend with zeros)
-            let left_bytes = ileft.to_be_bytes();
-            let right_bytes = iright.to_be_bytes();
-            let left_u16 = u32::from_be_bytes([0, 0, left_bytes[0], left_bytes[1]]);
-            let right_u16 = u32::from_be_bytes([0, 0, right_bytes[0], right_bytes[1]]);
-            let res = left_u16 + right_u16;
-            res >> 16 == 1
-        };
-
-        let (uresult, overflow) = ileft.overflowing_add(iright);
-        let zero = uresult == 0;
-        let negativ = uresult > (i16::MAX as u16);
-        let sresult = uresult as i16;
-        let flags = ResultFlags::new(zero, negativ, overflow, carry);
-        let values = ResultValue::new(uresult, sresult);
-        Self { flags, values }
-    }
-
-    fn new32(left: i32, right: i32) -> Self {
-        let ileft = left as u32;
-        let iright = right as u32;
-        let carry = {
-            // build u16 for addition (extend with zeros)
-            let left_bytes = ileft.to_be_bytes();
-            let right_bytes = iright.to_be_bytes();
-            let left_u16 = u64::from_be_bytes([
-                0,
-                0,
-                0,
-                0,
-                left_bytes[0],
-                left_bytes[1],
-                left_bytes[2],
-                left_bytes[3],
-            ]);
-            let right_u16 = u64::from_be_bytes([
-                0,
-                0,
-                0,
-                0,
-                right_bytes[0],
-                right_bytes[1],
-                right_bytes[2],
-                right_bytes[3],
-            ]);
-            let res = left_u16 + right_u16;
-            res >> 32 == 1
-        };
-        let (uresult, overflow) = ileft.overflowing_add(iright);
-        let zero = uresult == 0;
-        let negativ = uresult > (i32::MAX as u32);
-        let sresult = uresult as i32;
-        let flags = ResultFlags::new(zero, negativ, overflow, carry);
-        let values = ResultValue::new(uresult, sresult);
-        Self { flags, values }
+#[wasm_bindgen]
+impl Results {
+    pub(crate) fn get_mut_flags(&mut self) -> &mut ResultFlags {
+        &mut self.flags
     }
 
     #[wasm_bindgen(getter)]
