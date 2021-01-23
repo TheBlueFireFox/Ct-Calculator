@@ -1,6 +1,9 @@
 mod utils;
 
-use std::fmt::{Binary, Display, UpperHex};
+use std::{
+    fmt::{Binary, Display, UpperHex},
+    ops::Add,
+};
 
 use wasm_bindgen::prelude::*;
 
@@ -21,20 +24,30 @@ pub fn greet() {
 }
 
 #[wasm_bindgen]
-pub fn sub(left:i32, right: i32, of: i32) -> Result<Results, JsValue> {
+pub fn sub(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
     // transform right to it's complement
     let right = !right + 1;
+    let mut res = add(left, right, of)?;
 
-    add(left, right, of)
+    // special case for overflows
+    match of {
+        4 => subtraction::new4(left, right, &mut res),
+        8 => subtraction::new8(left, right, &mut res),
+        16 => subtraction::new16(left, right, &mut res),
+        32 => subtraction::new32(left, right, &mut res),
+        _ => {} // this has already been checked earlier
+    }
+
+    Ok(res)
 }
 
 #[wasm_bindgen]
 pub fn add(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
     match of {
-        4 => Ok(Results::new4(left, right)),
-        8 => Ok(Results::new8(left, right)),
-        16 => Ok(Results::new16(left, right)),
-        32 => Ok(Results::new32(left, right)),
+        4 => Ok(addition::new4(left, right)),
+        8 => Ok(addition::new8(left, right)),
+        16 => Ok(addition::new16(left, right)),
+        32 => Ok(addition::new32(left, right)),
         _ => Err(JsValue::from("unsupported value")),
     }
 }
@@ -46,22 +59,48 @@ pub struct Results {
     values: ResultValue,
 }
 
-#[wasm_bindgen]
-impl Results {
-    fn new4(left: i32, right: i32) -> Self {
-        const NIBBLE: u8 = 0xF;
-        const MAX_I4: u8 = 7;
+const NIBBLE: u8 = 0xF;
+const MAX_I4: u8 = 7;
 
+fn to_i4(val: u8) -> i8 {
+    let res = if val > MAX_I4 {
+        (NIBBLE << 4) | val
+    } else {
+        val
+    };
+    res as i8
+}
+
+mod subtraction {
+    use super::*;
+
+    pub(crate) fn new4(left: i32, right: i32, res: &mut Results) {
+        let mut flags = res.get_mut_flags();
+        // ((si_b > 0 && si_a < INT_MIN + si_b) ||
+        // (si_b < 0 && si_a > INT_MAX + si_b))
+        todo!()
+    }
+    pub(crate) fn new8(left: i32, right: i32, res: &mut Results) {
+        todo!()
+    }
+    pub(crate) fn new16(left: i32, right: i32, res: &mut Results) {
+        todo!()
+    }
+    pub(crate) fn new32(left: i32, right: i32, res: &mut Results) {
+        todo!()
+    }
+}
+
+mod addition {
+    use super::*;
+
+    pub(crate) fn new4(left: i32, right: i32) -> Results {
         let cleft = left as u8 & NIBBLE;
         let cright = right as u8 & NIBBLE;
 
         let tresult = cleft + cright;
         let uresult = tresult & NIBBLE;
-        let sresult = if uresult > 7 {
-            (NIBBLE << 4) | uresult
-        } else {
-            uresult
-        } as i8;
+        let sresult = to_i4(uresult);
 
         let carry = tresult >> 4 == 1;
         let negativ = uresult > MAX_I4;
@@ -70,13 +109,23 @@ impl Results {
         let overflow = {
             // 1)  Calculate sum
             // 2)  Check for conditions
-            //     If both numbers are positive and sum is negative then 
+            //     If both numbers are positive and sum is negative then
             //        return true
-            //     Else If both numbers are negative and sum is positive then 
+            //     Else If both numbers are negative and sum is positive then
             //        return true
-            //     Else 
+            //     Else
             //        return false
-           (left >= 0 && right >= 0 && sresult < 0) || (left < 0 && right < 0 && sresult >= 0)
+            // works only for addition :-(
+            (left >= 0 && right >= 0 && sresult < 0) || (left < 0 && right < 0 && sresult >= 0)
+
+            // doesn't work
+            // const MAX_I4_S: i8 = 0x7;
+            // const MIN_I4_S: i8 = 0xF;
+            // const NIBBLE_S : i8 = 0xF;
+            // let si_b = right as i8 & NIBBLE_S;
+            // let si_a = left as i8 & NIBBLE_S;
+            // (si_b > 0 && si_a < MIN_I4_S + si_b)
+            //     || (si_b < 0) && (si_a > MAX_I4_S + si_b)
         };
 
         let flags = ResultFlags::new(zero, negativ, overflow, carry);
@@ -85,10 +134,10 @@ impl Results {
         values.hex = (&values.hex[values.hex.len() - 1..]).to_string();
         values.bin = (&values.bin[values.bin.len() - 4..]).to_string();
 
-        Self { flags, values }
+        Results { flags, values }
     }
 
-    fn new8(left: i32, right: i32) -> Self {
+    pub(crate) fn new8(left: i32, right: i32) -> Results {
         let ileft = left as u8;
         let iright = right as u8;
         let carry = {
@@ -104,10 +153,10 @@ impl Results {
         let sresult = uresult as i8;
         let flags = ResultFlags::new(zero, negativ, overflow, carry);
         let values = ResultValue::new(uresult, sresult);
-        Self { flags, values }
+        Results { flags, values }
     }
 
-    fn new16(left: i32, right: i32) -> Self {
+    pub(crate) fn new16(left: i32, right: i32) -> Results {
         let ileft = left as u16;
         let iright = right as u16;
         let carry = {
@@ -126,10 +175,10 @@ impl Results {
         let sresult = uresult as i16;
         let flags = ResultFlags::new(zero, negativ, overflow, carry);
         let values = ResultValue::new(uresult, sresult);
-        Self { flags, values }
+        Results { flags, values }
     }
 
-    fn new32(left: i32, right: i32) -> Self {
+    pub(crate) fn new32(left: i32, right: i32) -> Results {
         let ileft = left as u32;
         let iright = right as u32;
         let carry = {
@@ -165,7 +214,14 @@ impl Results {
         let sresult = uresult as i32;
         let flags = ResultFlags::new(zero, negativ, overflow, carry);
         let values = ResultValue::new(uresult, sresult);
-        Self { flags, values }
+        Results { flags, values }
+    }
+}
+
+#[wasm_bindgen]
+impl Results {
+    pub(crate) fn get_mut_flags(&mut self) -> &mut ResultFlags {
+        &mut self.flags
     }
 
     #[wasm_bindgen(getter)]
