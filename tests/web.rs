@@ -114,12 +114,90 @@ fn test_8_one() {
     let left = 0x82;
     let right = 0x12;
     let of = 8;
-    let flags = ResultFlags::new(false, true, false, false);
-    let values = ResultValue::new(0x94u8, 0x94i8);
-    let results = Results::new(flags, values);
-    testing_facility_results(&results, left, right, of, sub);
+    {
+        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        let flags = ResultFlags::new(false, true, false, false);
+        let values = ResultValue::new(0x94u8, 0x94u8 as i8);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, add);
+    }
+    {
+        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        let flags = ResultFlags::new(false, false, true, true);
+        let values = ResultValue::new(0x70u8, 0x70u8 as i8);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, sub);
+    }
 }
 
+#[wasm_bindgen_test]
+fn test_8_two() {
+    let left = 0x34;
+    let right = 0x72;
+    let of = 8;
+    {
+        let res = 0xA6u8;
+        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        let flags = ResultFlags::new(false, true, true, false);
+        let values = ResultValue::new(res, res as i8);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, add);
+    }
+    {
+        let res = 0xC2u8;
+        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        let flags = ResultFlags::new(false, true, false, false);
+        let values = ResultValue::new(res, res as i8);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, sub);
+    }
+}
+
+#[wasm_bindgen_test]
+fn test_8_three() {
+    let left = 0xC2;
+    let right = 0x87;
+    let of = 8;
+    {
+        let res = 0x49u8;
+        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        let flags = ResultFlags::new(false, false, true, true);
+        let values = ResultValue::new(res, res as i8);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, add);
+    }
+    {
+        let res = 0x3Bu8;
+        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        let flags = ResultFlags::new(false, false, false, true);
+        let values = ResultValue::new(res, res as i8);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, sub);
+    }
+}
+
+#[wasm_bindgen_test]
+fn test_8_four() {
+    let left = 0xA3;
+    let right = 0x62;
+    let of = 8;
+    {
+        let res = 0x05u8;
+        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        let flags = ResultFlags::new(false, false, false, true);
+        let values = ResultValue::new(res, res as i8);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, add);
+    }
+    {
+        let res = 0x41u8;
+        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        let flags = ResultFlags::new(false, false, true, true);
+        let values = ResultValue::new(res, res as i8);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, sub);
+    }
+}
 
 fn testing_facility_results<T>(expected: &Results, left: i32, right: i32, of: i32, func: T)
 where

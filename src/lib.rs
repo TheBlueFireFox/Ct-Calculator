@@ -84,10 +84,10 @@ mod addition {
                     let res = left_u16 + right_u16;
                     res >> (std::mem::size_of::<$main_type>() * 8) == 1
                 };
-                let (uresult, overflow) = ileft.overflowing_add(iright);
+                let uresult = ileft.wrapping_add(iright);
+                let (sresult, overflow) = (ileft as $second_type).overflowing_add(iright as $second_type);
                 let zero = uresult == 0;
                 let negativ = uresult > (<$second_type>::MAX as $main_type);
-                let sresult = uresult as $second_type;
                 let flags = ResultFlags::new(zero, negativ, overflow, carry);
                 let values = ResultValue::new(uresult, sresult);
                 Results::new(flags, values)
