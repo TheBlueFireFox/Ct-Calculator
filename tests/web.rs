@@ -34,55 +34,22 @@ fn test_i4() {
 
 #[wasm_bindgen_test]
 fn test_add_overflow_no_carry() {
-    let result = add(0b0110, 0b0111, 4);
-    // check if the value is okay
-    assert_eq!(true, result.is_ok());
-
-    let result = result.unwrap();
-    let value = result.get_value();
-    let flags = result.get_flags();
-
-    // check if calculations worked
-    // and if hex / binary representations are correct
-    assert_eq!("-3", &value.get_signed()[..]);
-    assert_eq!("13", &value.get_unsigned()[..]);
-    assert_eq!("1101", &value.get_bin()[..]);
-    assert_eq!("D", &value.get_hex()[..]);
-
-    // check if flags are correctly set
-    assert_eq!(false, flags.carry);
-    assert_eq!(true, flags.borrow);
-    assert_eq!(true, flags.overflow);
-    assert_eq!(false, flags.zero);
+    let left = 0b0110;
+    let right = 0b0111;
+    let of = 4;
+    let flags = ResultFlags::new(false, true, true, false);
+    let values = ResultValue::new4(13, -3);
+    let results = Results::new(flags, values);
+    testing_facility_results(&results, left, right, of, add);
 }
 
 #[wasm_bindgen_test]
 fn test_add_overflow_zero() {
-    let result = add(0b1111, 0b0001, 4);
-    assert!(result.is_ok());
-
-    let result = result.unwrap();
-    let value = result.get_value();
-    let flags = result.get_flags();
-
-    // check if calculations worked
-    // and if hex / binary representations are correct
-    assert_eq!("0", &value.get_signed()[..]);
-    assert_eq!("0", &value.get_unsigned()[..]);
-    assert_eq!("0000", &value.get_bin()[..]);
-    assert_eq!("0", &value.get_hex()[..]);
-
-    // check if flags are correctly set
-    assert_eq!(true, flags.carry);
-    assert_eq!(false, flags.borrow);
-    assert_eq!(false, flags.overflow);
-    assert_eq!(true, flags.zero);
-
     let left = 0b1111;
     let right = 0b0001;
     let of = 4;
     let flags = ResultFlags::new(true, false, false, true);
-    let values = ResultValue::new4(5, 5);
+    let values = ResultValue::new4(0, 0);
     let results = Results::new(flags, values);
     testing_facility_results(&results, left, right, of, add);
 }
