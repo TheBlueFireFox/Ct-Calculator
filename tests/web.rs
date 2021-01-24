@@ -88,7 +88,7 @@ fn test_sub_no_overflow_carry() {
 }
 
 #[wasm_bindgen_test]
-fn test_sub_overflow_no_carry() {
+fn test_sub_no_overflow_carry2() {
     let left = 0b1100;
     let right = 0b1011;
     let of = 4;
