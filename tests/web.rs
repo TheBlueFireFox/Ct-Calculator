@@ -89,6 +89,17 @@ fn test_sub_no_overflow_carry() {
 
 #[wasm_bindgen_test]
 fn test_sub_overflow_no_carry() {
+    let left = 0b1100;
+    let right = 0b1011;
+    let of = 4;
+    let flags = ResultFlags::new(false, false, false, true);
+    let values = ResultValue::new4(1, 1);
+    let results = Results::new(flags, values);
+    testing_facility_results(&results, left, right, of, sub);
+}
+
+#[wasm_bindgen_test]
+fn test_sub_overflow_no_carry() {
     let left = 0b0111;
     let right = 0b1110;
     let of = 4;
