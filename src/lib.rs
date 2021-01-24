@@ -1,7 +1,5 @@
 mod utils;
 
-use std::fmt::{Binary, Display, UpperHex};
-
 use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -36,12 +34,6 @@ pub fn add(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
         32 => Ok(addition::new32(left, right)),
         _ => Err(JsValue::from("unsupported value")),
     }
-}
-#[wasm_bindgen]
-#[derive(Debug)]
-pub struct Results {
-    flags: ResultFlags,
-    values: ResultValue,
 }
 
 const NIBBLE_U8: u8 = 0xF;
@@ -98,7 +90,7 @@ mod addition {
                 let sresult = uresult as $second_type;
                 let flags = ResultFlags::new(zero, negativ, overflow, carry);
                 let values = ResultValue::new(uresult, sresult);
-                Results { flags, values }
+                Results::new(flags, values)
             }
         };
     }
@@ -136,7 +128,7 @@ mod addition {
             //  * 0100 + 0001 = 0101 (overflow flag is turned off)
             //  * 0110 + 1001 = 1111 (overflow flag is turned off)
             //  * 1000 + 0001 = 1001 (overflow flag is turned off)
-            //  * 1100 + 1100 = 1000 (overflow flag is turned off)                
+            //  * 1100 + 1100 = 1000 (overflow flag is turned off)
             //
             // Note that you only need to look at the sign bits (leftmost) of the three
             // numbers to decide if the overflow flag is turned on or off.
@@ -162,13 +154,9 @@ mod addition {
         };
 
         let flags = ResultFlags::new(zero, negativ, overflow, carry);
-        let mut values = ResultValue::new(uresult, sresult);
+        let values = ResultValue::new4(uresult, sresult);
 
-        // remove uneeded bits from the given string
-        values.hex = (&values.hex[values.hex.len() - 1..]).to_string();
-        values.bin = (&values.bin[values.bin.len() - 4..]).to_string();
-
-        Results { flags, values }
+        Results::new(flags, values)
     }
 
     new!(new8, u8, i8, u16);
@@ -177,7 +165,17 @@ mod addition {
 }
 
 #[wasm_bindgen]
+#[derive(Debug)]
+pub struct Results {
+    flags: ResultFlags,
+    values: ResultValue,
+}
+
+#[wasm_bindgen]
 impl Results {
+    pub fn new(flags: ResultFlags, values: ResultValue) -> Self {
+        Self { flags, values }
+    }
 
     #[wasm_bindgen(getter)]
     pub fn get_flags(&self) -> ResultFlags {
@@ -202,13 +200,45 @@ pub struct ResultFlags {
 
 #[wasm_bindgen]
 impl ResultFlags {
-    fn new(zero: bool, negativ: bool, overflow: bool, carry: bool) -> Self {
+    pub fn new(zero: bool, negativ: bool, overflow: bool, carry: bool) -> Self {
         Self {
             zero,
             negativ,
             overflow,
             carry,
             borrow: !carry,
+        }
+    }
+}
+
+mod formatter {
+    use super::ResultValue;
+    use std::fmt::{Binary, Display, UpperHex};
+
+    impl ResultValue {
+        pub fn new<U, S>(unsigned: U, signed: S) -> Self
+        where
+            U: num::Unsigned + Display + UpperHex + Binary,
+            S: num::Signed + Display,
+        {
+            Self {
+                unsigned: format!("{}", unsigned),
+                signed: format!("{}", signed),
+                hex: ResultValue::fix_size::<U>(format!("{:X}", unsigned), 2),
+                bin: ResultValue::fix_size::<U>(format!("{:b}", unsigned), 8),
+            }
+        }
+
+        pub fn new4(unsigned: u8, signed: i8) -> Self {
+            let mut res = Self::new(unsigned, signed);
+            res.hex = (&res.hex[res.hex.len() - 1..]).to_string();
+            res.bin = (&res.bin[res.bin.len() - 4..]).to_string();
+            res
+        }
+
+        fn fix_size<T>(s: String, mult: usize) -> String {
+            let size = std::mem::size_of::<T>() * mult;
+            format!("{}{}", "0".repeat(size - s.len()), s)
         }
     }
 }
@@ -224,24 +254,6 @@ pub struct ResultValue {
 
 #[wasm_bindgen]
 impl ResultValue {
-    fn new<U, S>(unsigned: U, signed: S) -> Self
-    where
-        U: num::Unsigned + Display + UpperHex + Binary,
-        S: num::Signed + Display,
-    {
-        Self {
-            unsigned: format!("{}", unsigned),
-            signed: format!("{}", signed),
-            hex: ResultValue::fix_size::<U>(format!("{:X}", unsigned), 2),
-            bin: ResultValue::fix_size::<U>(format!("{:b}", unsigned), 8),
-        }
-    }
-
-    fn fix_size<T>(s: String, mult: usize) -> String {
-        let size = std::mem::size_of::<T>() * mult;
-        format!("{}{}", "0".repeat(size - s.len()), s)
-    }
-
     #[wasm_bindgen(getter)]
     pub fn get_signed(&self) -> String {
         self.signed.clone()
