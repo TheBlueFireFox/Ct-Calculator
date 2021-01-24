@@ -31,7 +31,7 @@ fn test_i4() {
         assert_eq!((i - 16) as i8, to_i4(i));
     }
 }
-
+mod overflow_add {
 #[wasm_bindgen_test]
 fn test_add_overflow_no_carry() {
     let left = 0b0110;
@@ -64,54 +64,69 @@ fn test_add_no_overflow_carry() {
     let results = Results::new(flags, values);
     testing_facility_results(&results, left, right, of, add);
 }
-
-#[wasm_bindgen_test]
-fn test_sub_borrow_no_overflow() {
-    let left = 0b0110;
-    let right = 0b0111;
-    let of = 4;
-    let flags = ResultFlags::new(false, true, false, false);
-    let values = ResultValue::new4(15, -1);
-    let results = Results::new(flags, values);
-    testing_facility_results(&results, left, right, of, sub);
 }
+mod overflow_sub {
+    use super::*;
+    #[wasm_bindgen_test]
+    fn test_sub_borrow_no_overflow() {
+        let left = 0b0110;
+        let right = 0b0111;
+        let of = 4;
+        let flags = ResultFlags::new(false, true, false, false);
+        let values = ResultValue::new4(15, -1);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, sub);
+    }
 
-#[wasm_bindgen_test]
-fn test_sub_no_overflow_carry() {
-    let left = 0b1111;
-    let right = 0b0001;
-    let of = 4;
-    let flags = ResultFlags::new(false, true, false, true);
-    let values = ResultValue::new4(14, -2);
-    let results = Results::new(flags, values);
-    testing_facility_results(&results, left, right, of, sub);
+    #[wasm_bindgen_test]
+    fn test_sub_no_overflow_carry() {
+        let left = 0b1111;
+        let right = 0b0001;
+        let of = 4;
+        let flags = ResultFlags::new(false, true, false, true);
+        let values = ResultValue::new4(14, -2);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, sub);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_sub_no_overflow_carry2() {
+        let left = 0b1100;
+        let right = 0b1011;
+        let of = 4;
+        let flags = ResultFlags::new(false, false, false, true);
+        let values = ResultValue::new4(1, 1);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, sub);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_sub_overflow_no_carry() {
+        let left = 0b0111;
+        let right = 0b1110;
+        let of = 4;
+        let flags = ResultFlags::new(false, true, true, false);
+        let values = ResultValue::new4(9, -7);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, sub);
+    }
 }
-
-#[wasm_bindgen_test]
-fn test_sub_no_overflow_carry2() {
-    let left = 0b1100;
-    let right = 0b1011;
-    let of = 4;
-    let flags = ResultFlags::new(false, false, false, true);
-    let values = ResultValue::new4(1, 1);
-    let results = Results::new(flags, values);
-    testing_facility_results(&results, left, right, of, sub);
+mod borrow {
+    use super::*;
+    #[wasm_bindgen_test]
+    fn test_sub_overflow_no_carry() {
+        let left = 0b0111;
+        let right = 0b1110;
+        let of = 4;
+        let flags = ResultFlags::new(false, true, true, false);
+        let values = ResultValue::new4(9, -7);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, sub);
+    }
 }
-
-#[wasm_bindgen_test]
-fn test_sub_overflow_no_carry() {
-    let left = 0b0111;
-    let right = 0b1110;
-    let of = 4;
-    let flags = ResultFlags::new(false, true, true, false);
-    let values = ResultValue::new4(9, -7);
-    let results = Results::new(flags, values);
-    testing_facility_results(&results, left, right, of, sub);
-}
-
 fn testing_facility_results<T>(expected: &Results, left: i32, right: i32, of: i32, func: T)
 where
-    T: FnOnce(i32, i32, i32) -> Result<Results, JsValue>
+    T: FnOnce(i32, i32, i32) -> Result<Results, JsValue>,
 {
     let result = func(left, right, of);
     assert_eq!(
