@@ -20,25 +20,23 @@ pub fn greet() {
     alert("Hello, ct-calculator!");
 }
 
-macro_rules! func {
-    ($name:tt, $path:tt) => {
-        #[wasm_bindgen]
-        pub fn $name(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
-            match of {
-                4 => Ok($path::new4(left, right)),
-                8 => Ok($path::new8(left, right)),
-                16 => Ok($path::new16(left, right)),
-                32 => Ok($path::new32(left, right)),
-                _ => Err(JsValue::from("unsupported value")),
-            }
-        }
-    };
+#[wasm_bindgen]
+pub fn sub(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
+    let right = !right + 1;
+
+    add(left, right, of)
 }
 
-func!(sub, subtraction);
-
-func!(add, addition);
-
+#[wasm_bindgen]
+pub fn add(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
+    match of {
+        4 => Ok(addition::new4(left, right)),
+        8 => Ok(addition::new8(left, right)),
+        16 => Ok(addition::new16(left, right)),
+        32 => Ok(addition::new32(left, right)),
+        _ => Err(JsValue::from("unsupported value")),
+    }
+}
 #[wasm_bindgen]
 #[derive(Debug)]
 pub struct Results {
@@ -48,10 +46,8 @@ pub struct Results {
 
 const NIBBLE_U8: u8 = 0xF;
 const MAX_I4_U: u8 = 7;
-const MAX_I4_I: i8 = 7;
-const MIN_I4_I: i8 = -8;
 
-fn to_i4(val: u8) -> i8 {
+pub fn to_i4(val: u8) -> i8 {
     let val = val & NIBBLE_U8;
     let res = if val > MAX_I4_U {
         (NIBBLE_U8 << 4) | val
@@ -59,50 +55,6 @@ fn to_i4(val: u8) -> i8 {
         val
     };
     res as i8
-}
-
-mod subtraction {
-    use super::*;
-
-    pub(crate) fn new4(left: i32, right: i32) -> Results {
-        // transform right to it's complement
-        let right = !right + 1;
-
-        let mut res = addition::new4(left, right);
-        let mut flags = res.get_mut_flags();
-        // ((si_b > 0 && si_a < INT_MIN + si_b) ||
-        // (si_b < 0 && si_a > INT_MAX + si_b))
-
-        let cleft = to_i4(left as u8 & NIBBLE_U8);
-        let cright = to_i4(right as u8 & NIBBLE_U8);
-
-        flags.overflow = {
-            (cright > 0 && cleft < (MIN_I4_I + cright))
-                || (cright < 0 && cleft > (MAX_I4_I + cright))
-        };
-        res
-    }
-
-    macro_rules! new {
-        ($name:tt, $type:ty) => {
-            pub(crate) fn $name(left: i32, right: i32) -> Results {
-                // transform right to it's complement
-                let right = !right + 1;
-
-                let mut res = addition::$name(left, right);
-                let mut flags = res.get_mut_flags();
-                let ileft = left as $type;
-                let iright = right as $type;
-                let (_, overflow) = ileft.overflowing_sub(iright);
-                flags.overflow = overflow;
-                res
-            }
-        };
-    }
-
-    new!(new8, i8);
-    new!(new16, i16);
-    new!(new32, i32);
 }
 
 mod addition {
@@ -125,7 +77,7 @@ mod addition {
 
                         let size = std::mem::size_of::<$parent_type>();
 
-                        parts[(size - bytes.len() - 1)..].copy_from_slice(&bytes);
+                        parts[(size - bytes.len())..].copy_from_slice(&bytes);
 
                         <$parent_type>::from_be_bytes(
                             (&parts[..])
@@ -164,30 +116,55 @@ mod addition {
         let zero = uresult == 0;
 
         let overflow = {
-            // 1)  Calculate sum
-            // 2)  Check for conditions
-            //     If both numbers are positive and sum is negative then
-            //        return true
-            //     Else If both numbers are negative and sum is positive then
-            //        return true
-            //     Else
-            //        return false
-            // works only for addition :-(
-            (left >= 0 && right >= 0 && sresult < 0) || (left < 0 && right < 0 && sresult >= 0)
+            // see http://teaching.idallen.com/dat2343/10f/notes/040_overflow.txt
+            // Overflow Flag
+            // -------------
+            //
+            // The rules for turning on the overflow flag in binary/integer math are two:
+            //
+            // 1. If the sum of two numbers with the sign bits off yields a result number
+            //    with the sign bit on, the "overflow" flag is turned on.
+            //
+            //    0100 + 0100 = 1000 (overflow flag is turned on)
+            //
+            // 2. If the sum of two numbers with the sign bits on yields a result number
+            //    with the sign bit off, the "overflow" flag is turned on.
+            //
+            //    1000 + 1000 = 0000 (overflow flag is turned on)
+            //
+            // Otherwise, the overflow flag is turned off.
+            //  * 0100 + 0001 = 0101 (overflow flag is turned off)
+            //  * 0110 + 1001 = 1111 (overflow flag is turned off)
+            //  * 1000 + 0001 = 1001 (overflow flag is turned off)
+            //  * 1100 + 1100 = 1000 (overflow flag is turned off)                
+            //
+            // Note that you only need to look at the sign bits (leftmost) of the three
+            // numbers to decide if the overflow flag is turned on or off.
+            //
+            // If you are doing two's complement (signed) arithmetic, overflow flag on
+            // means the answer is wrong - you added two positive numbers and got a
+            // negative, or you added two negative numbers and got a positive.
+            //
+            // If you are doing unsigned arithmetic, the overflow flag means nothing
+            // and should be ignored.
+            //
+            // The rules for two's complement detect errors by examining the sign of
+            // the result.  A negative and positive added together cannot be wrong,
+            // because the sum is between the addends. Since both of the addends fit
+            // within the allowable range of numbers, and their sum is between them, it
+            // must fit as well.  Mixed-sign addition never turns on the overflow flag.
+            //
+            // In signed arithmetic, watch the overflow flag to detect errors.
+            // In unsigned arithmetic, the overflow flag tells you nothing interesting.
 
-            // doesn't work
-            // const MAX_I4_S: i8 = 0x7;
-            // const MIN_I4_S: i8 = 0xF;
-            // const NIBBLE_S : i8 = 0xF;
-            // let si_b = right as i8 & NIBBLE_S;
-            // let si_a = left as i8 & NIBBLE_S;
-            // (si_b > 0 && si_a < MIN_I4_S + si_b)
-            //     || (si_b < 0) && (si_a > MAX_I4_S + si_b)
+            (cright <= MAX_I4_U && cleft <= MAX_I4_U && uresult > MAX_I4_U)
+                || (cright > MAX_I4_U && cleft > MAX_I4_U && uresult <= MAX_I4_U)
         };
 
         let flags = ResultFlags::new(zero, negativ, overflow, carry);
         let mut values = ResultValue::new(uresult, sresult);
 
+        // remove uneeded bits from the given string
         values.hex = (&values.hex[values.hex.len() - 1..]).to_string();
         values.bin = (&values.bin[values.bin.len() - 4..]).to_string();
 
@@ -201,9 +178,6 @@ mod addition {
 
 #[wasm_bindgen]
 impl Results {
-    pub(crate) fn get_mut_flags(&mut self) -> &mut ResultFlags {
-        &mut self.flags
-    }
 
     #[wasm_bindgen(getter)]
     pub fn get_flags(&self) -> ResultFlags {
