@@ -143,7 +143,7 @@ mod addition {
                 let (uresult, overflow) = ileft.overflowing_add(iright);
                 let zero = uresult == 0;
                 let negativ = uresult > (<$second_type>::MAX as $main_type);
-                let sresult = uresult as i32;
+                let sresult = uresult as $second_type;
                 let flags = ResultFlags::new(zero, negativ, overflow, carry);
                 let values = ResultValue::new(uresult, sresult);
                 Results { flags, values }
