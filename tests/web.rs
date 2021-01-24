@@ -32,38 +32,39 @@ fn test_i4() {
     }
 }
 mod overflow_add {
-#[wasm_bindgen_test]
-fn test_add_overflow_no_carry() {
-    let left = 0b0110;
-    let right = 0b0111;
-    let of = 4;
-    let flags = ResultFlags::new(false, true, true, false);
-    let values = ResultValue::new4(13, -3);
-    let results = Results::new(flags, values);
-    testing_facility_results(&results, left, right, of, add);
-}
+    use super::*;
+    #[wasm_bindgen_test]
+    fn test_add_overflow_no_carry() {
+        let left = 0b0110;
+        let right = 0b0111;
+        let of = 4;
+        let flags = ResultFlags::new(false, true, true, false);
+        let values = ResultValue::new4(13, -3);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, add);
+    }
 
-#[wasm_bindgen_test]
-fn test_add_overflow_zero() {
-    let left = 0b1111;
-    let right = 0b0001;
-    let of = 4;
-    let flags = ResultFlags::new(true, false, false, true);
-    let values = ResultValue::new4(0, 0);
-    let results = Results::new(flags, values);
-    testing_facility_results(&results, left, right, of, add);
-}
+    #[wasm_bindgen_test]
+    fn test_add_overflow_zero() {
+        let left = 0b1111;
+        let right = 0b0001;
+        let of = 4;
+        let flags = ResultFlags::new(true, false, false, true);
+        let values = ResultValue::new4(0, 0);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, add);
+    }
 
-#[wasm_bindgen_test]
-fn test_add_no_overflow_carry() {
-    let left = 0b0111;
-    let right = 0b1110;
-    let of = 4;
-    let flags = ResultFlags::new(false, false, false, true);
-    let values = ResultValue::new4(5, 5);
-    let results = Results::new(flags, values);
-    testing_facility_results(&results, left, right, of, add);
-}
+    #[wasm_bindgen_test]
+    fn test_add_no_overflow_carry() {
+        let left = 0b0111;
+        let right = 0b1110;
+        let of = 4;
+        let flags = ResultFlags::new(false, false, false, true);
+        let values = ResultValue::new4(5, 5);
+        let results = Results::new(flags, values);
+        testing_facility_results(&results, left, right, of, add);
+    }
 }
 mod overflow_sub {
     use super::*;
