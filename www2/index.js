@@ -49,7 +49,7 @@ function setResult() {
 
 // update flags on UI
 function updateFlags() {
-    let { zero, overflow, carry, negative , borrow } = values.result.get_flags
+    let { zero, overflow, carry, negative, borrow } = values.result.get_flags
 
     document.getElementById('flagNegative').innerText = negative ? '1' : '0'
     document.getElementById('flagZero').innerText = zero ? '1' : '0'
@@ -92,11 +92,11 @@ function main() {
     for (let id = 4; id <= 32; id *= 2) {
         document.getElementById(id + 'bit').addEventListener('click', () => {
             chosenBits = id
-            for (let [type, _] of inputFields) {
-                for (let location of ['Left', 'Right']) {
+            for (let location of ['Left', 'Right']) {
+                for (let [type, _] of inputFields) {
                     document.getElementById('input' + location + type).value = ''
                 }
-                // document.getElementById('input' + location + "2C").value = ''
+                document.getElementById('input' + location + "2C").value = ''
             }
         })
     }
