@@ -33,6 +33,14 @@ fn test_i4() {
 }
 
 #[wasm_bindgen_test]
+fn test_example() {
+    let left = 0x8;
+    let right = 0xB;
+    let res = sub(left, right, 4).unwrap();
+    assert_eq!(false, res.get_flags().overflow);
+}
+
+#[wasm_bindgen_test]
 fn test_add_overflow_no_carry() {
     let left = 0b0110;
     let right = 0b0111;

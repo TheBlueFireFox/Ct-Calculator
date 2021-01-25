@@ -214,6 +214,26 @@ impl ResultFlags {
     }
 }
 
+#[wasm_bindgen]
+#[derive(Debug, Clone)]
+pub struct ResultValue {
+    signed: String,
+    unsigned: String,
+    bin: String,
+    hex: String,
+}
+
+#[wasm_bindgen]
+pub fn format(value : i32, of : i32) -> Result<ResultValue, JsValue> {
+    match of {
+        4 => Ok(ResultValue::new4(value as u8, to_i4(value as u8))),
+        8 => Ok(ResultValue::new(value as u8,value as i8)),
+        16 => Ok(ResultValue::new(value as u16, value as i16)),
+        32 => Ok(ResultValue::new(value as u32, value as i32)),
+        _ => Err(JsValue::from("unsupported value")),
+    }
+}
+
 mod formatter {
     use super::ResultValue;
     use std::fmt::{Binary, Display, UpperHex};
@@ -246,15 +266,6 @@ mod formatter {
             format!("{}{}", "0".repeat(size - s.len()), s)
         }
     }
-}
-
-#[wasm_bindgen]
-#[derive(Debug, Clone)]
-pub struct ResultValue {
-    signed: String,
-    unsigned: String,
-    bin: String,
-    hex: String,
 }
 
 #[wasm_bindgen]
