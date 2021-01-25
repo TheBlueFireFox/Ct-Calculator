@@ -35,9 +35,10 @@ function setInput(from) {
         return
     }
 
-        document.getElementById('input' + from + 'Binary').value = value.
-        document.getElementById('input' + from + 'Decimal').value = value.
-        document.getElementById('input' + from + 'Hexadecimal').value = value.
+       // document.getElementById('input' + from + 'Binary').value = value.
+       // document.getElementById('input' + from + 'Decimal').value = value.
+       // document.getElementById('input' + from + 'Hexadecimal').value = value.
+
 }
 
 function setResult() {
