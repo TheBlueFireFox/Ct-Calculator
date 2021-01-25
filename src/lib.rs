@@ -302,7 +302,7 @@ mod formatter {
         pub fn new4(unsigned: u8, signed: i8, complement: u8) -> Self {
         
             let res = ResultValue::new4(unsigned, signed);
-            let s = format!("{}", complement);
+            let s = format!("{:b}", complement);
             let mut comp = fix_size::<u8>(s, 8);
             comp = (&comp[comp.len() - 4..]).to_string();
 
@@ -321,7 +321,7 @@ mod formatter {
             S: num::Signed + Display,
         {
             let res = ResultValue::new(unsigned, signed);
-            let s = format!("{}", complement);
+            let s = format!("{:b}", complement);
             let comp = fix_size::<U>(s, 8);
             Self {
                 signed: res.signed,
