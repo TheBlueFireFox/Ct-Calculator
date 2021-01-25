@@ -36,8 +36,17 @@ fn test_i4() {
 fn test_example() {
     let left = 0x8;
     let right = 0xB;
-    let res = sub(left, right, 4).unwrap();
-    assert_eq!(false, res.get_flags().overflow);
+    {
+        let res = add(left, right, 4).unwrap();
+        assert_eq!(true, res.get_flags().overflow);
+        assert_eq!(true, res.get_flags().carry);
+    }
+
+    {
+        let res = sub(left, right, 4).unwrap();
+        assert_eq!(false, res.get_flags().overflow);
+        assert_eq!(true, res.get_flags().borrow);
+    }
 }
 
 #[wasm_bindgen_test]

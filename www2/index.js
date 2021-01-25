@@ -6,6 +6,9 @@ const inputFields = [
     ['Hexadecimal', 16]
 ]
 
+
+const OPERATION = [["plus", "add"], ["minus", "subtract"]];
+
 let chosenBits = 4
 let previousValues = []
 let operation = 'add'
@@ -16,45 +19,56 @@ let values = {
     result: null
 }
 
-// const OPERATIONS = ["add", "subtract"]
-
-// update flags on UI
-function updateFlags({ zero, overflow, carry, negative }) {
-    document.getElementById('flagNegative').innerText = negative ? '1' : '0'
-    document.getElementById('flagZero').innerText = zero ? '1' : '0'
-    document.getElementById('flagOverflow').innerText = overflow ? '1' : '0'
-    document.getElementById('flagCarry').innerText = carry ? '1' : '0'
-    document.getElementById('flagBorrow').innerText = !carry ? '1' : '0'
-}
-
 
 function setInput(from) {
-    let value = values[from]
+    let value = values[from.toLowerCase()]
 
     if (value === undefined || value === null) {
         return
     }
 
-       // document.getElementById('input' + from + 'Binary').value = value.
-       // document.getElementById('input' + from + 'Decimal').value = value.
-       // document.getElementById('input' + from + 'Hexadecimal').value = value.
-
+    document.getElementById('input' + from + 'Binary').value = value.get_bin
+    document.getElementById('input' + from + '2C').value = value.get_com
+    document.getElementById('input' + from + 'Decimal').value = value.get_signed
+    document.getElementById('input' + from + 'Hexadecimal').value = value.get_hex
 }
 
 function setResult() {
-    let res = values.res
+    let res = values.result.get_value
 
+    if (res === undefined || res === null) {
+        return
+    }
 
     // update UI TODO:
-    document.getElementById('outputBinary').value = binaryOutput
-    document.getElementById('outputHexadecimal').value = hexadecimalOutput.toUpperCase()
-    document.getElementById('unsigned').value = parsedDecimal.toString(10)
-    document.getElementById('signed').value = parsedResult.toString(10)
+    document.getElementById('outputBinary').value = res.get_bin
+    document.getElementById('outputHexadecimal').value = res.get_hex
+    document.getElementById('unsigned').value = res.get_unsigned
+    document.getElementById('signed').value = res.get_signed
+}
+
+// update flags on UI
+function updateFlags() {
+    let { zero, overflow, carry, negative , borrow } = values.result.get_flags
+
+    document.getElementById('flagNegative').innerText = negative ? '1' : '0'
+    document.getElementById('flagZero').innerText = zero ? '1' : '0'
+    document.getElementById('flagOverflow').innerText = overflow ? '1' : '0'
+    document.getElementById('flagCarry').innerText = carry ? '1' : '0'
+    document.getElementById('flagBorrow').innerText = borrow ? '1' : '0'
 }
 
 function calculateResult() {
+    let res = null
 
-    let res
+    let rawLeft = document.getElementById('inputLeftDecimal').value
+    let rawRight = document.getElementById('inputRightDecimal').value
+
+    let left = parseInt(rawLeft, 10)
+    let right = parseInt(rawRight, 10)
+
+    console.log(operation)
+
     switch (operation) {
         case "add":
             res = wasm.add(left, right, chosenBits)
@@ -69,8 +83,8 @@ function calculateResult() {
 
     values.result = res
 
-    updateFlags(res.get_flags)
-
+    updateFlags()
+    setResult()
 }
 
 function main() {
@@ -84,6 +98,13 @@ function main() {
                 }
                 // document.getElementById('input' + location + "2C").value = ''
             }
+        })
+    }
+
+    for (let [sign, op] of OPERATION) {
+        document.getElementById(sign).addEventListener('click', () => {
+            operation = op
+            calculateResult()
         })
     }
 
@@ -107,10 +128,12 @@ function main() {
                 try {
                     let result = wasm.format(ivalue, chosenBits)
                     values[location.toLowerCase()] = result
-                } catch {
+                } catch (e) {
+                    console.log("no clue what happend")
+                    console.log(e)
                 }
 
-                setInputs(location.toLowerCase())
+                setInput(location)
                 calculateResult()
             })
         }
