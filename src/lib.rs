@@ -20,9 +20,7 @@ pub fn greet() {
 
 #[wasm_bindgen]
 pub fn sub(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
-    let right = !right + 1;
-
-    add(left, right, of)
+    add(left, !right + 1, of)
 }
 
 #[wasm_bindgen]
@@ -50,26 +48,28 @@ pub fn to_i4(val: u8) -> i8 {
 }
 
 mod addition {
-    use std::convert::TryInto;
-
-    use super::*;
+    use {super::*, std::convert::TryInto};
 
     macro_rules! new {
         ($name:tt, $main_type:ty, $second_type:ty, $parent_type:ty) => {
             pub(crate) fn $name(left: i32, right: i32) -> Results {
-                let ileft = left as $main_type;
-                let iright = right as $main_type;
+                let uleft = left as $main_type;
+                let uright = right as $main_type;
+                let sleft = uleft as $second_type;
+                let sright = uright as $second_type;
+
                 let carry = {
-                    // build u16 for addition (extend with zeros)
+                    // build parent type for addition (extended with zeros)
+                    // so that the carry flag can be detected.
+                    const SIZEP: usize = std::mem::size_of::<$parent_type>();
+                    const SIZEM: usize = std::mem::size_of::<$main_type>();
 
                     let transform = |data: $main_type| {
                         let bytes = data.to_be_bytes();
 
-                        let mut parts = [0; std::mem::size_of::<$parent_type>()];
+                        let mut parts = [0; SIZEP];
 
-                        let size = std::mem::size_of::<$parent_type>();
-
-                        parts[(size - bytes.len())..].copy_from_slice(&bytes);
+                        parts[(SIZEP - bytes.len())..].copy_from_slice(&bytes);
 
                         <$parent_type>::from_be_bytes(
                             (&parts[..])
@@ -78,18 +78,22 @@ mod addition {
                         )
                     };
 
-                    let left_u16 = transform(ileft);
-                    let right_u16 = transform(iright);
+                    let left_u16 = transform(uleft);
+                    let right_u16 = transform(uright);
 
                     let res = left_u16 + right_u16;
-                    res >> (std::mem::size_of::<$main_type>() * 8) == 1
+
+                    res >> (SIZEM * 8) == 1
                 };
-                let uresult = ileft.wrapping_add(iright);
-                let (sresult, overflow) = (ileft as $second_type).overflowing_add(iright as $second_type);
+
+                let uresult = uleft.wrapping_add(uright);
+                let (sresult, overflow) = sleft.overflowing_add(sright);
                 let zero = uresult == 0;
-                let negativ = uresult > (<$second_type>::MAX as $main_type);
+                let negativ = sresult < 0;
+
                 let flags = ResultFlags::new(zero, negativ, overflow, carry);
                 let values = ResultValue::new(uresult, sresult);
+
                 Results::new(flags, values)
             }
         };
@@ -198,7 +202,6 @@ pub struct ResultFlags {
     pub borrow: bool,
 }
 
-#[wasm_bindgen]
 impl ResultFlags {
     pub fn new(zero: bool, negativ: bool, overflow: bool, carry: bool) -> Self {
         Self {
@@ -215,6 +218,8 @@ mod formatter {
     use super::ResultValue;
     use std::fmt::{Binary, Display, UpperHex};
 
+    /// is split here as to have a pub new, while having some wasm_bindgen
+    /// getters.
     impl ResultValue {
         pub fn new<U, S>(unsigned: U, signed: S) -> Self
         where

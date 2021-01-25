@@ -27,8 +27,8 @@ fn test_i4() {
         assert_eq!(i as i8, to_i4(i));
     }
 
-    for i in 8..=7 {
-        assert_eq!((i - 16) as i8, to_i4(i));
+    for i in 8..=15 {
+        assert_eq!(-((16 - i) as i8), to_i4(i));
     }
 }
 
