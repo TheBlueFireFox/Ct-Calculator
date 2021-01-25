@@ -6,7 +6,7 @@ extern crate wasm_bindgen_test;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_test::*;
 
-// wasm_bindgen_test_configure!(run_in_browser);
+wasm_bindgen_test_configure!(run_in_browser);
 
 use ct_calculator::*;
 
@@ -132,14 +132,14 @@ fn test_8_one() {
     let right = 0x12;
     let of = 8;
     {
-        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        // zero: bool, negative: bool, overflow: bool, carry: bool
         let flags = ResultFlags::new(false, true, false, false);
         let values = ResultValue::new(0x94u8, 0x94u8 as i8);
         let results = Results::new(flags, values);
         testing_facility_results(&results, left, right, of, add);
     }
     {
-        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        // zero: bool, negative: bool, overflow: bool, carry: bool
         let flags = ResultFlags::new(false, false, true, true);
         let values = ResultValue::new(0x70u8, 0x70u8 as i8);
         let results = Results::new(flags, values);
@@ -154,7 +154,7 @@ fn test_8_two() {
     let of = 8;
     {
         let res = 0xA6u8;
-        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        // zero: bool, negative: bool, overflow: bool, carry: bool
         let flags = ResultFlags::new(false, true, true, false);
         let values = ResultValue::new(res, res as i8);
         let results = Results::new(flags, values);
@@ -162,7 +162,7 @@ fn test_8_two() {
     }
     {
         let res = 0xC2u8;
-        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        // zero: bool, negative: bool, overflow: bool, carry: bool
         let flags = ResultFlags::new(false, true, false, false);
         let values = ResultValue::new(res, res as i8);
         let results = Results::new(flags, values);
@@ -177,7 +177,7 @@ fn test_8_three() {
     let of = 8;
     {
         let res = 0x49u8;
-        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        // zero: bool, negative: bool, overflow: bool, carry: bool
         let flags = ResultFlags::new(false, false, true, true);
         let values = ResultValue::new(res, res as i8);
         let results = Results::new(flags, values);
@@ -185,7 +185,7 @@ fn test_8_three() {
     }
     {
         let res = 0x3Bu8;
-        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        // zero: bool, negative: bool, overflow: bool, carry: bool
         let flags = ResultFlags::new(false, false, false, true);
         let values = ResultValue::new(res, res as i8);
         let results = Results::new(flags, values);
@@ -200,7 +200,7 @@ fn test_8_four() {
     let of = 8;
     {
         let res = 0x05u8;
-        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        // zero: bool, negative: bool, overflow: bool, carry: bool
         let flags = ResultFlags::new(false, false, false, true);
         let values = ResultValue::new(res, res as i8);
         let results = Results::new(flags, values);
@@ -208,7 +208,7 @@ fn test_8_four() {
     }
     {
         let res = 0x41u8;
-        // zero: bool, negativ: bool, overflow: bool, carry: bool
+        // zero: bool, negative: bool, overflow: bool, carry: bool
         let flags = ResultFlags::new(false, false, true, true);
         let values = ResultValue::new(res, res as i8);
         let results = Results::new(flags, values);
@@ -258,5 +258,8 @@ where
         "Overflow flag wrong"
     );
     assert_eq!(expected_flags.zero, flags.zero, "Zero flag wrong");
-    assert_eq!(expected_flags.negativ, flags.negativ, "Negativ flag wrong");
+    assert_eq!(
+        expected_flags.negative, flags.negative,
+        "Negativ flag wrong"
+    );
 }

@@ -9,16 +9,6 @@ use wasm_bindgen::prelude::*;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
-extern "C" {
-    fn alert(s: &str);
-}
-
-#[wasm_bindgen]
-pub fn greet() {
-    alert("Hello, ct-calculator!");
-}
-
-#[wasm_bindgen]
 pub fn sub(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
     add(left, !right + 1, of)
 }
@@ -89,9 +79,9 @@ mod addition {
                 let uresult = uleft.wrapping_add(uright);
                 let (sresult, overflow) = sleft.overflowing_add(sright);
                 let zero = uresult == 0;
-                let negativ = sresult < 0;
+                let negative = sresult < 0;
 
-                let flags = ResultFlags::new(zero, negativ, overflow, carry);
+                let flags = ResultFlags::new(zero, negative, overflow, carry);
                 let values = ResultValue::new(uresult, sresult);
 
                 Results::new(flags, values)
@@ -108,7 +98,7 @@ mod addition {
         let sresult = to_i4(uresult);
 
         let carry = tresult >> 4 == 1;
-        let negativ = uresult > MAX_I4_U;
+        let negative = uresult > MAX_I4_U;
         let zero = uresult == 0;
 
         let overflow = {
@@ -139,13 +129,13 @@ mod addition {
             //
             // If you are doing two's complement (signed) arithmetic, overflow flag on
             // means the answer is wrong - you added two positive numbers and got a
-            // negative, or you added two negative numbers and got a positive.
+            // negativee, or you added two negativee numbers and got a positive.
             //
             // If you are doing unsigned arithmetic, the overflow flag means nothing
             // and should be ignored.
             //
             // The rules for two's complement detect errors by examining the sign of
-            // the result.  A negative and positive added together cannot be wrong,
+            // the result.  A negativee and positive added together cannot be wrong,
             // because the sum is between the addends. Since both of the addends fit
             // within the allowable range of numbers, and their sum is between them, it
             // must fit as well.  Mixed-sign addition never turns on the overflow flag.
@@ -157,7 +147,7 @@ mod addition {
                 || (cright > MAX_I4_U && cleft > MAX_I4_U && uresult <= MAX_I4_U)
         };
 
-        let flags = ResultFlags::new(zero, negativ, overflow, carry);
+        let flags = ResultFlags::new(zero, negative, overflow, carry);
         let values = ResultValue::new4(uresult, sresult);
 
         Results::new(flags, values)
@@ -196,17 +186,17 @@ impl Results {
 #[derive(Debug, Clone, Copy)]
 pub struct ResultFlags {
     pub zero: bool,
-    pub negativ: bool,
+    pub negative: bool,
     pub overflow: bool,
     pub carry: bool,
     pub borrow: bool,
 }
 
 impl ResultFlags {
-    pub fn new(zero: bool, negativ: bool, overflow: bool, carry: bool) -> Self {
+    pub fn new(zero: bool, negative: bool, overflow: bool, carry: bool) -> Self {
         Self {
             zero,
-            negativ,
+            negative,
             overflow,
             carry,
             borrow: !carry,
@@ -300,7 +290,6 @@ mod formatter {
 
     impl FormattedValue {
         pub fn new4(unsigned: u8, signed: i8, complement: u8) -> Self {
-        
             let res = ResultValue::new4(unsigned, signed);
             let s = format!("{:b}", complement);
             let mut comp = fix_size::<u8>(s, 8);

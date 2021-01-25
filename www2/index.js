@@ -6,19 +6,16 @@ const inputFields = [
     ['Hexadecimal', 16]
 ]
 
-
 const OPERATION = [["plus", "add"], ["minus", "subtract"]];
 
-let chosenBits = 4
-let previousValues = []
-let operation = 'add'
+var chosenBits = 4
+var operation = 'add'
 
-let values = {
+var values = {
     right: null,
     left: null,
     result: null
 }
-
 
 function setInput(from) {
     let value = values[from.toLowerCase()]
@@ -47,8 +44,7 @@ function setResult() {
     document.getElementById('signed').value = res.get_signed
 }
 
-// update flags on UI
-function updateFlags() {
+function setFlags() {
     let { zero, overflow, carry, negative, borrow } = values.result.get_flags
 
     document.getElementById('flagNegative').innerText = negative ? '1' : '0'
@@ -63,6 +59,12 @@ function calculateResult() {
 
     let rawLeft = document.getElementById('inputLeftDecimal').value
     let rawRight = document.getElementById('inputRightDecimal').value
+
+    const condition = (name) => name === null || name === undefined || name === ''
+
+    if (condition(rawLeft) || condition(rawRight)) {
+        return
+    }
 
     let left = parseInt(rawLeft, 10)
     let right = parseInt(rawRight, 10)
@@ -83,24 +85,50 @@ function calculateResult() {
 
     values.result = res
 
-    updateFlags()
+    setFlags()
     setResult()
 }
 
+function resetField(location) {
+    for (let [type] of inputFields) {
+        document.getElementById('input' + location + type).value = ''
+    }
+    document.getElementById('input' + location + "2C").value = ''
+    resetResults()
+}
+
+function resetResults() {
+    // reset all the result fields
+    for (let where of ['outputBinary', 'outputHexadecimal', 'unsigned', 'signed']) {
+        document.getElementById(where).value = ''
+    }
+
+    // reset all the flags
+    for (let type of ['Negative', 'Zero', 'Overflow', 'Carry', 'Borrow']) {
+        document.getElementById("flag" + type).innerText = '0'
+    }
+}
+
+function reset() {
+    // reset all the fields
+    for (let field of ["Left", "Right"]) {
+        resetField(field)
+    }
+}
+
 function main() {
+    // clean up everything
+    reset()
+
     // register bit amount event listener
     for (let id = 4; id <= 32; id *= 2) {
         document.getElementById(id + 'bit').addEventListener('click', () => {
             chosenBits = id
-            for (let location of ['Left', 'Right']) {
-                for (let [type, _] of inputFields) {
-                    document.getElementById('input' + location + type).value = ''
-                }
-                document.getElementById('input' + location + "2C").value = ''
-            }
+            reset()
         })
     }
 
+    // register operation listener
     for (let [sign, op] of OPERATION) {
         document.getElementById(sign).addEventListener('click', () => {
             operation = op
@@ -121,16 +149,16 @@ function main() {
                 let ivalue = parseInt(value, base)
 
                 if (ivalue.toString(2).length > chosenBits) {
-                    e.currentTarget.valueOf().value = previousValues[base]
+                    e.currentTarget.valueOf().value = undefined
                     return
                 }
 
                 try {
                     let result = wasm.format(ivalue, chosenBits)
                     values[location.toLowerCase()] = result
-                } catch (e) {
+                } catch (err) {
                     console.log("no clue what happend")
-                    console.log(e)
+                    console.log(err)
                 }
 
                 setInput(location)
