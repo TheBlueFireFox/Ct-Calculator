@@ -11,399 +11,402 @@
 </head>
 
 <body>
-<noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
-<script src="bootstrap.js"></script>
-<div id="main">
-    <div class="fullWidth">
-        <h1>CT Calculator</h1>
-        <h2>The chaddest, most tanner ARM cortex M0 arithmetic emulator/chad-culator on the interwebz. - © Olichu &
-            Adichu</h2>
+    <noscript>This page contains webassembly and javascript content, please enable javascript in your
+        browser.</noscript>
+    <script src="bootstrap.js"></script>
+    <div id="main">
+        <div class="fullWidth">
+            <h1>CT Calculator</h1>
+            <h2>The chaddest, most tanner ARM cortex M0 arithmetic emulator/chad-culator on the interwebz. - © Olichu &
+                Adichu</h2>
+        </div>
+        <div class="fullWidth">
+            <div class="box">
+                <input type="radio" id="4bit" class="radioButton" name="bitAmount" value="4bit" checked>
+                <label for="4bit">4bit</label>
+                <input type="radio" id="8bit" class="radioButton" name="bitAmount" value="8bit">
+                <label for="8bit">8bit</label>
+                <input type="radio" id="16bit" class="radioButton" name="bitAmount" value="16bit">
+                <label for="16bit">16bit</label>
+                <input type="radio" id="32bit" class="radioButton" name="bitAmount" value="32bit">
+                <label for="32bit">32bit</label>
+            </div>
+        </div>
+        <div class="fullWidth">
+            <div class="box">
+                <h3>Input</h3>
+                <table>
+                    <tr>
+                        <td>
+                            Decimal
+                        </td>
+                        <td class="IOField">
+                            <input type="text" id="inputLeftDecimal" name="inputLeftDecimal" class="textBox"
+                                oninput="this.value=this.value.replace(/(?![0-9])./gmi,'')">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Binary
+                        </td>
+                        <td class="IOField">
+                            <input type="text" id="inputLeftBinary" name="inputLeftBinary" class="textBox"
+                                oninput="this.value=this.value.replace(/(?![01])./gmi,'')">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            2C
+                        </td>
+                        <td class="IOField">
+                            <input type="text" id="inputLeft2C" name="inputLeft2C" disabled class="textBox">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Hexadecimal
+                        </td>
+                        <td class="IOField">
+                            <input type="text" id="inputLeftHexadecimal" name="inputLeftHexadecimal" class="textBox"
+                                oninput="this.value=this.value.replace(/(?![0-9A-Fa-f])./gmi,'')">
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+            <div class="operatorBox">
+                <input type="radio" id="plus" class="radioButton" name="operation" value="plus" checked>
+                <label for="plus">ADD</label><br>
+                <input type="radio" id="minus" class="radioButton" name="operation" value="minus">
+                <label for="minus">SUB</label><br>
+                <input type="radio" id="and" class="radioButton" name="operation" value="and">
+                <label for="and">AND</label><br>
+                <input type="radio" id="or" class="radioButton" name="operation" value="or">
+                <label for="or">OR</label><br>
+                <input type="radio" id="xor" class="radioButton" name="operation" value="xor">
+                <label for="xor">XOR</label><br>
+                <input type="radio" id="cmp" class="radioButton" name="operation" value="cmp">
+                <label for="xor">NAND</label><br>
+                <input type="radio" id="nand" class="radioButton" name="operation" value="cmp">
+                <label for="cmp">CMP</label><br>
+                <input type="radio" id="tst" class="radioButton" name="operation" value="tst">
+                <label for="tst">TST</label>
+
+            </div>
+            <div class="box">
+                <h3>Operand</h3>
+                <table>
+                    <tr>
+                        <td>
+                            Decimal
+                        </td>
+                        <td class="IOField">
+                            <input type="text" id="inputRightDecimal" name="inputRightDecimal" class="textBox"
+                                oninput="this.value=this.value.replace(/(?![0-9])./gmi,'')">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Binary
+                        </td>
+                        <td class="IOField">
+                            <input type="text" id="inputRightBinary" name="inputRightBinary" class="textBox"
+                                oninput="this.value=this.value.replace(/(?![01])./gmi,'')">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            2C
+                        </td>
+                        <td class="IOField">
+                            <input type="text" id="inputRight2C" name="inputRight2C" disabled class="textBox">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Hexadecimal
+                        </td>
+                        <td class="IOField">
+                            <input type="text" id="inputRightHexadecimal" name="inputRightHexadecimal" class="textBox"
+                                oninput="this.value=this.value.replace(/(?![0-9A-Fa-f])./gmi,'')">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="box">
+                <h3>Result</h3>
+                <table>
+                    <tr>
+                        <td>
+                            Signed Decimal
+                        </td>
+                        <td class="IOField">
+                            <input type="text" id="signed" name="signed" class="textBox" disabled>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Unsigned Decimal
+                        </td>
+                        <td class="IOField">
+                            <input type="text" id="unsigned" name="unsigned" class="textBox" disabled>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Binary
+                        </td>
+                        <td class="IOField">
+                            <input type="text" id="outputBinary" name="outputBinary" class="textBox" disabled>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Hexadecimal
+                        </td>
+                        <td class="IOField">
+                            <input type="text" id="outputHexadecimal" name="outputHexadecimal" disabled class="textBox">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="fullWidth">
+            <div id="flags" class="flexibleBox">
+                <h3>Flags</h3>
+                <table>
+                    <tr>
+                        <td>
+                            <b>Z</b> Zero
+                        </td>
+                        <td>
+                            <span id="flagZero">1</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>N</b> Negative
+                        </td>
+                        <td>
+                            <span id="flagNegative">1</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>V</b> Overflow
+                        </td>
+                        <td>
+                            <span id="flagOverflow">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>C</b> Carry
+                        </td>
+                        <td>
+                            <span id="flagCarry">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>B</b> Borrow
+                        </td>
+                        <td>
+                            <span id="flagBorrow">0</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="unsignedConditionals" class="flexibleBox">
+                <h3>Unsigned Conditionals</h3>
+                <table>
+                    <tr>
+                        <td>
+                            <b>EQ</b>
+                        </td>
+                        <td>
+                            Equal
+                        </td>
+                        <td>
+                            <span id="condUnsignedEQ">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>NE</b>
+                        </td>
+                        <td>
+                            Not Equal
+                        </td>
+                        <td>
+                            <span id="condUnsignedNE">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>HS (=CS)</b>
+                        </td>
+                        <td>
+                            Higher or same
+                        </td>
+                        <td>
+                            <span id="condUnsignedHS">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>LO (=CC)</b>
+                        </td>
+                        <td>
+                            Lower
+                        </td>
+                        <td>
+                            <span id="condUnsignedLO">0</span>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>HI</b>
+                        </td>
+                        <td>
+                            Higher
+                        </td>
+                        <td>
+                            <span id="condUnsignedHI">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>LS</b>
+                        </td>
+                        <td>
+                            Lower or same
+                        </td>
+                        <td>
+                            <span id="condUnsignedLS">0</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div id="signedConditionals" class="flexibleBox">
+                <h3>Signed Conditionals</h3>
+                <table>
+                    <tr>
+                        <td>
+                            <b>EQ</b>
+                        </td>
+                        <td>
+                            Equal
+                        </td>
+                        <td>
+                            <span id="condSignedEQ">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>NE</b>
+                        </td>
+                        <td>
+                            Not equal
+                        </td>
+                        <td>
+                            <span id="condSignedNE">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>MI</b>
+                        </td>
+                        <td>
+                            Minus / Negative
+                        </td>
+                        <td>
+                            <span id="condSignedMI">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>PL</b>
+                        </td>
+                        <td>
+                            Plus / Positive or zero
+                        </td>
+                        <td>
+                            <span id="condSignedPL">0</span>
+                        </td>
+                    <tr>
+                        <td>
+                            <b>VS</b>
+                        </td>
+                        <td>
+                            Overflow
+                        </td>
+                        <td>
+                            <span id="condSignedVS">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>VC</b>
+                        </td>
+                        <td>
+                            No overflow
+                        </td>
+                        <td>
+                            <span id="condSignedVC">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>GE</b>
+                        </td>
+                        <td>
+                            Greater than or equal
+                        </td>
+                        <td>
+                            <span id="condSignedGE">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>LT</b>
+                        </td>
+                        <td>
+                            Less than
+                        </td>
+                        <td>
+                            <span id="condSignedLT">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>GT</b>
+                        </td>
+                        <td>
+                            Greater than
+                        </td>
+                        <td>
+                            <span id="condSignedGT">0</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <b>LE</b>
+                        </td>
+                        <td>
+                            Less than or equal
+                        </td>
+                        <td>
+                            <span id="condSignedLE">0</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
     </div>
-    <div class="fullWidth">
-        <div class="box">
-            <input type="radio" id="4bit" class="radioButton" name="bitAmount" value="4bit" checked>
-            <label for="4bit">4bit</label>
-            <input type="radio" id="8bit" class="radioButton" name="bitAmount" value="8bit">
-            <label for="8bit">8bit</label>
-            <input type="radio" id="16bit" class="radioButton" name="bitAmount" value="16bit">
-            <label for="16bit">16bit</label>
-            <input type="radio" id="32bit" class="radioButton" name="bitAmount" value="32bit">
-            <label for="32bit">32bit</label>
-        </div>
-    </div>
-    <div class="fullWidth">
-        <div class="box">
-            <h3>Input</h3>
-            <table>
-                <tr>
-                    <td>
-                        Decimal
-                    </td>
-                    <td class="IOField">
-                        <input type="text" id="inputLeftDecimal" name="inputLeftDecimal" class="textBox"
-                               oninput="this.value=this.value.replace(/(?![0-9])./gmi,'')">
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Binary
-                    </td>
-                    <td class="IOField">
-                        <input type="text" id="inputLeftBinary" name="inputLeftBinary" class="textBox"
-                               oninput="this.value=this.value.replace(/(?![01])./gmi,'')">
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        2C
-                    </td>
-                    <td class="IOField">
-                        <input type="text" id="inputLeft2C" name="inputLeft2C" disabled class="textBox">
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Hexadecimal
-                    </td>
-                    <td class="IOField">
-                        <input type="text" id="inputLeftHexadecimal" name="inputLeftHexadecimal" class="textBox"
-                               oninput="this.value=this.value.replace(/(?![0-9A-Fa-f])./gmi,'')">
-                    </td>
-                </tr>
-            </table>
-
-        </div>
-        <div class="operatorBox">
-            <input type="radio" id="plus" class="radioButton" name="operation" value="plus" checked>
-            <label for="plus">ADD</label><br>
-            <input type="radio" id="minus" class="radioButton" name="operation" value="minus">
-            <label for="minus">SUB</label><br>
-            <input type="radio" id="and" class="radioButton" name="operation" value="and">
-            <label for="and">AND</label><br>
-            <input type="radio" id="or" class="radioButton" name="operation" value="or">
-            <label for="or">OR</label><br>
-            <input type="radio" id="xor" class="radioButton" name="operation" value="xor">
-            <label for="xor">XOR</label><br>
-            <input type="radio" id="cmp" class="radioButton" name="operation" value="cmp">
-            <label for="cmp">CMP</label><br>
-            <input type="radio" id="tst" class="radioButton" name="operation" value="tst">
-            <label for="tst">TST</label>
-
-        </div>
-        <div class="box">
-            <h3>Operand</h3>
-            <table>
-                <tr>
-                    <td>
-                        Decimal
-                    </td>
-                    <td class="IOField">
-                        <input type="text" id="inputRightDecimal" name="inputRightDecimal" class="textBox"
-                               oninput="this.value=this.value.replace(/(?![0-9])./gmi,'')">
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Binary
-                    </td>
-                    <td class="IOField">
-                        <input type="text" id="inputRightBinary" name="inputRightBinary" class="textBox"
-                               oninput="this.value=this.value.replace(/(?![01])./gmi,'')">
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        2C
-                    </td>
-                    <td class="IOField">
-                        <input type="text" id="inputRight2C" name="inputRight2C" disabled class="textBox">
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Hexadecimal
-                    </td>
-                    <td class="IOField">
-                        <input type="text" id="inputRightHexadecimal" name="inputRightHexadecimal" class="textBox"
-                               oninput="this.value=this.value.replace(/(?![0-9A-Fa-f])./gmi,'')">
-                    </td>
-                </tr>
-            </table>
-        </div>
-        <div class="box">
-            <h3>Result</h3>
-            <table>
-                <tr>
-                    <td>
-                        Signed Decimal
-                    </td>
-                    <td class="IOField">
-                        <input type="text" id="signed" name="signed"  class="textBox" disabled>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Unsigned Decimal
-                    </td>
-                    <td class="IOField">
-                        <input type="text" id="unsigned" name="unsigned" class="textBox" disabled>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Binary
-                    </td>
-                    <td class="IOField">
-                        <input type="text" id="outputBinary" name="outputBinary"  class="textBox" disabled>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Hexadecimal
-                    </td>
-                    <td class="IOField">
-                        <input type="text" id="outputHexadecimal" name="outputHexadecimal" disabled class="textBox">
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
-    <div class="fullWidth">
-        <div id="flags" class="flexibleBox">
-            <h3>Flags</h3>
-            <table>
-                <tr>
-                    <td>
-                        <b>Z</b> Zero
-                    </td>
-                    <td>
-                        <span id="flagZero">1</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>N</b> Negative
-                    </td>
-                    <td>
-                        <span id="flagNegative">1</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>V</b> Overflow
-                    </td>
-                    <td>
-                        <span id="flagOverflow">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>C</b> Carry
-                    </td>
-                    <td>
-                        <span id="flagCarry">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>B</b> Borrow
-                    </td>
-                    <td>
-                        <span id="flagBorrow">0</span>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <div id="unsignedConditionals" class="flexibleBox">
-            <h3>Unsigned Conditionals</h3>
-            <table>
-                <tr>
-                    <td>
-                        <b>EQ</b>
-                    </td>
-                    <td>
-                        Equal
-                    </td>
-                    <td>
-                        <span id="condUnsignedEQ">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>NE</b>
-                    </td>
-                    <td>
-                        Not Equal
-                    </td>
-                    <td>
-                        <span id="condUnsignedNE">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>HS (=CS)</b>
-                    </td>
-                    <td>
-                        Higher or same
-                    </td>
-                    <td>
-                        <span id="condUnsignedHS">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>LO (=CC)</b>
-                    </td>
-                    <td>
-                        Lower
-                    </td>
-                    <td>
-                        <span id="condUnsignedLO">0</span>
-                    </td>
-
-                </tr>
-                <tr>
-                    <td>
-                        <b>HI</b>
-                    </td>
-                    <td>
-                        Higher
-                    </td>
-                    <td>
-                        <span id="condUnsignedHI">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>LS</b>
-                    </td>
-                    <td>
-                        Lower or same
-                    </td>
-                    <td>
-                        <span id="condUnsignedLS">0</span>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <div id="signedConditionals" class="flexibleBox">
-            <h3>Signed Conditionals</h3>
-            <table>
-                <tr>
-                    <td>
-                        <b>EQ</b>
-                    </td>
-                    <td>
-                        Equal
-                    </td>
-                    <td>
-                        <span id="condSignedEQ">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>NE</b>
-                    </td>
-                    <td>
-                        Not equal
-                    </td>
-                    <td>
-                        <span id="condSignedNE">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>MI</b>
-                    </td>
-                    <td>
-                        Minus / Negative
-                    </td>
-                    <td>
-                        <span id="condSignedMI">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>PL</b>
-                    </td>
-                    <td>
-                        Plus / Positive or zero
-                    </td>
-                    <td>
-                        <span id="condSignedPL">0</span>
-                    </td>
-                <tr>
-                    <td>
-                        <b>VS</b>
-                    </td>
-                    <td>
-                        Overflow
-                    </td>
-                    <td>
-                        <span id="condSignedVS">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>VC</b>
-                    </td>
-                    <td>
-                        No overflow
-                    </td>
-                    <td>
-                        <span id="condSignedVC">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>GE</b>
-                    </td>
-                    <td>
-                        Greater than or equal
-                    </td>
-                    <td>
-                        <span id="condSignedGE">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>LT</b>
-                    </td>
-                    <td>
-                        Less than
-                    </td>
-                    <td>
-                        <span id="condSignedLT">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>GT</b>
-                    </td>
-                    <td>
-                        Greater than
-                    </td>
-                    <td>
-                        <span id="condSignedGT">0</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <b>LE</b>
-                    </td>
-                    <td>
-                        Less than or equal
-                    </td>
-                    <td>
-                        <span id="condSignedLE">0</span>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
-</div>
 </body>
 
 </html>

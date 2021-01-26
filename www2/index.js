@@ -6,7 +6,7 @@ const inputFields = [
     ['Hexadecimal', 16]
 ]
 
-const OPERATION = [["plus", "add"], ["minus", "sub"], ["and", "and"], ["or", "or"], ["xor", "xor"], ["tst", "and"], ["cmp", "sub"]];
+const OPERATION = [["plus", "add"], ["minus", "sub"], ["and", "and"], ["or", "or"], ["xor", "xor"], ["tst", "and"], ["cmp", "sub"], ["nand", "nand"]];
 
 var chosenBits = 4
 var operation = 'add'
@@ -126,6 +126,9 @@ function calculateResult() {
             break
         case "xor":
             res = wasm.xor(left, right, chosenBits)
+            break
+        case "nand":
+            res = wasm.nand(left, right, chosenBits)
             break
         default:
             console.log("No clue how you landed here pall.")
