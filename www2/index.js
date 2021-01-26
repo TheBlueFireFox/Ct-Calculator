@@ -54,6 +54,46 @@ function setFlags() {
     document.getElementById('flagBorrow').innerText = borrow ? '1' : '0'
 }
 
+function setCondUnsigned() {
+    const works = (val) => val ? '1' : '0'
+    let { zero, carry } = values.result.get_flags
+
+    document.getElementById("condUnsignedEQ").innerText = works(zero)
+    document.getElementById("condUnsignedNE").innerText = works(!zero)
+
+    document.getElementById("condUnsignedHS").innerText = works(carry)
+    document.getElementById("condUnsignedLO").innerText = works(!carry)
+
+
+    document.getElementById("condUnsignedHI").innerText = works(carry && !zero)
+    document.getElementById("condUnsignedLS").innerText = works(!carry || zero)
+}
+
+function setCondSigned() {
+    const works = (val) => val ? '1' : '0'
+    let { zero, overflow, negative } = values.result.get_flags
+
+    document.getElementById("condSignedEQ").innerText = works(zero)
+    document.getElementById("condSignedNE").innerText = works(!zero)
+
+    document.getElementById("condSignedMI").innerText = works(negative)
+    document.getElementById("condSignedPL").innerText = works(!negative)
+
+    document.getElementById("condSignedVS").innerText = works(overflow)
+    document.getElementById("condSignedVC").innerText = works(!overflow)
+
+    document.getElementById("condSignedGE").innerText = works(negative == overflow)
+    document.getElementById("condSignedLT").innerText = works(negative != overflow)
+
+    document.getElementById("condSignedGT").innerText = works(!zero && (negative === overflow))
+    document.getElementById("condSignedLE").innerText = works(zero || (negative !== overflow))
+}
+
+function setCond() {
+    setCondSigned()
+    setCondUnsigned()
+}
+
 function calculateResult() {
     let res = null
 
@@ -87,6 +127,7 @@ function calculateResult() {
 
     setFlags()
     setResult()
+    setCond()
 }
 
 function resetField(location) {
@@ -95,6 +136,44 @@ function resetField(location) {
     }
     document.getElementById('input' + location + "2C").value = ''
     resetResults()
+}
+
+function resetCondUnsigned() {
+    const names = [
+        "condUnsignedEQ",
+        "condUnsignedNE",
+        "condUnsignedHS",
+        "condUnsignedLO",
+        "condUnsignedHI",
+        "condUnsignedLS"
+    ]
+    for (let elem of names) {
+        document.getElementById(elem).innerText = '0'
+    }
+}
+
+function resetCondSigned() {
+    const names = [
+        "condSignedEQ",
+        "condSignedNE",
+        "condSignedMI",
+        "condSignedPL",
+        "condSignedVS",
+        "condSignedVC",
+        "condSignedGE",
+        "condSignedLT",
+        "condSignedGT",
+        "condSignedLE"
+    ]
+    for (let elem of names) {
+        document.getElementById(elem).innerText = '0'
+    }
+
+}
+
+function resetCond() {
+    resetCondUnsigned()
+    resetCondSigned()
 }
 
 function resetResults() {
@@ -114,6 +193,7 @@ function reset() {
     for (let field of ["Left", "Right"]) {
         resetField(field)
     }
+    resetCond()
 }
 
 function main() {
