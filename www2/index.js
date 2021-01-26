@@ -222,7 +222,6 @@ function main() {
         document.getElementById(sign).addEventListener('click', () => {
             operation = op
             calculateResult()
-            resetCond()
         })
     }
 
