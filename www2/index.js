@@ -6,7 +6,7 @@ const inputFields = [
     ['Hexadecimal', 16]
 ]
 
-const OPERATION = [["plus", "add"], ["minus", "subtract"], ["and", "and"], ["or", "or"], ["xor", "xor"]];
+const OPERATION = [["plus", "add"], ["minus", "subtract"], ["and", "and"], ["or", "or"], ["xor", "xor"], ["tst", "and"], ["cmp", "subtract"]];
 
 var chosenBits = 4
 var operation = 'add'
