@@ -1,5 +1,12 @@
-mod utils;
+pub mod api;
+pub mod utils;
 
+mod addition;
+mod logical;
+
+use addition::ADD;
+pub use api::{format, Results};
+use logical::{AND, OR, XOR};
 use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -8,6 +15,13 @@ use wasm_bindgen::prelude::*;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
+trait Supported {
+    fn new4(left: i32, right: i32) -> Results;
+    fn new8(left: i32, right: i32) -> Results;
+    fn new16(left: i32, right: i32) -> Results;
+    fn new32(left: i32, right: i32) -> Results;
+}
+
 #[wasm_bindgen]
 pub fn sub(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
     add(left, !right + 1, of)
@@ -15,362 +29,30 @@ pub fn sub(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
 
 #[wasm_bindgen]
 pub fn add(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
+    run::<ADD>(left, right, of)
+}
+
+#[wasm_bindgen]
+pub fn and(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
+    run::<AND>(left, right, of)
+}
+
+#[wasm_bindgen]
+pub fn or(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
+    run::<OR>(left, right, of)
+}
+
+#[wasm_bindgen]
+pub fn xor(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
+    run::<XOR>(left, right, of)
+}
+
+fn run<T: Supported>(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
     match of {
-        4 => Ok(addition::new4(left, right)),
-        8 => Ok(addition::new8(left, right)),
-        16 => Ok(addition::new16(left, right)),
-        32 => Ok(addition::new32(left, right)),
+        4 => Ok(T::new4(left, right)),
+        8 => Ok(T::new8(left, right)),
+        16 => Ok(T::new16(left, right)),
+        32 => Ok(T::new32(left, right)),
         _ => Err(JsValue::from("unsupported value")),
-    }
-}
-
-const NIBBLE_U8: u8 = 0xF;
-const MAX_I4_U: u8 = 7;
-
-pub fn to_i4(val: u8) -> i8 {
-    let val = val & NIBBLE_U8;
-    let res = if val > MAX_I4_U {
-        (NIBBLE_U8 << 4) | val
-    } else {
-        val
-    };
-    res as i8
-}
-
-mod addition {
-    use {super::*, std::convert::TryInto};
-
-    macro_rules! new {
-        ($name:tt, $main_type:ty, $second_type:ty, $parent_type:ty) => {
-            pub(crate) fn $name(left: i32, right: i32) -> Results {
-                let uleft = left as $main_type;
-                let uright = right as $main_type;
-                let sleft = uleft as $second_type;
-                let sright = uright as $second_type;
-
-                let carry = {
-                    // build parent type for addition (extended with zeros)
-                    // so that the carry flag can be detected.
-                    const SIZEP: usize = std::mem::size_of::<$parent_type>();
-                    const SIZEM: usize = std::mem::size_of::<$main_type>();
-
-                    let transform = |data: $main_type| {
-                        let bytes = data.to_be_bytes();
-
-                        let mut parts = [0; SIZEP];
-
-                        parts[(SIZEP - bytes.len())..].copy_from_slice(&bytes);
-
-                        <$parent_type>::from_be_bytes(
-                            (&parts[..])
-                                .try_into()
-                                .expect("This should be sound, as I am doing calculations before."),
-                        )
-                    };
-
-                    let left_u16 = transform(uleft);
-                    let right_u16 = transform(uright);
-
-                    let res = left_u16 + right_u16;
-
-                    res >> (SIZEM * 8) == 1
-                };
-
-                let uresult = uleft.wrapping_add(uright);
-                let (sresult, overflow) = sleft.overflowing_add(sright);
-                let zero = uresult == 0;
-                let negative = sresult < 0;
-
-                let flags = ResultFlags::new(zero, negative, overflow, carry);
-                let values = ResultValue::new(uresult, sresult);
-
-                Results::new(flags, values)
-            }
-        };
-    }
-
-    pub(crate) fn new4(left: i32, right: i32) -> Results {
-        let cleft = left as u8 & NIBBLE_U8;
-        let cright = right as u8 & NIBBLE_U8;
-
-        let tresult = cleft + cright;
-        let uresult = tresult & NIBBLE_U8;
-        let sresult = to_i4(uresult);
-
-        let carry = tresult >> 4 == 1;
-        let negative = uresult > MAX_I4_U;
-        let zero = uresult == 0;
-
-        let overflow = {
-            // see http://teaching.idallen.com/dat2343/10f/notes/040_overflow.txt
-            // Overflow Flag
-            // -------------
-            //
-            // The rules for turning on the overflow flag in binary/integer math are two:
-            //
-            // 1. If the sum of two numbers with the sign bits off yields a result number
-            //    with the sign bit on, the "overflow" flag is turned on.
-            //
-            //    0100 + 0100 = 1000 (overflow flag is turned on)
-            //
-            // 2. If the sum of two numbers with the sign bits on yields a result number
-            //    with the sign bit off, the "overflow" flag is turned on.
-            //
-            //    1000 + 1000 = 0000 (overflow flag is turned on)
-            //
-            // Otherwise, the overflow flag is turned off.
-            //  * 0100 + 0001 = 0101 (overflow flag is turned off)
-            //  * 0110 + 1001 = 1111 (overflow flag is turned off)
-            //  * 1000 + 0001 = 1001 (overflow flag is turned off)
-            //  * 1100 + 1100 = 1000 (overflow flag is turned off)
-            //
-            // Note that you only need to look at the sign bits (leftmost) of the three
-            // numbers to decide if the overflow flag is turned on or off.
-            //
-            // If you are doing two's complement (signed) arithmetic, overflow flag on
-            // means the answer is wrong - you added two positive numbers and got a
-            // negativee, or you added two negativee numbers and got a positive.
-            //
-            // If you are doing unsigned arithmetic, the overflow flag means nothing
-            // and should be ignored.
-            //
-            // The rules for two's complement detect errors by examining the sign of
-            // the result.  A negativee and positive added together cannot be wrong,
-            // because the sum is between the addends. Since both of the addends fit
-            // within the allowable range of numbers, and their sum is between them, it
-            // must fit as well.  Mixed-sign addition never turns on the overflow flag.
-            //
-            // In signed arithmetic, watch the overflow flag to detect errors.
-            // In unsigned arithmetic, the overflow flag tells you nothing interesting.
-
-            (cright <= MAX_I4_U && cleft <= MAX_I4_U && uresult > MAX_I4_U)
-                || (cright > MAX_I4_U && cleft > MAX_I4_U && uresult <= MAX_I4_U)
-        };
-
-        let flags = ResultFlags::new(zero, negative, overflow, carry);
-        let values = ResultValue::new4(uresult, sresult);
-
-        Results::new(flags, values)
-    }
-
-    new!(new8, u8, i8, u16);
-    new!(new16, u16, i16, u32);
-    new!(new32, u32, i32, u64);
-}
-
-#[wasm_bindgen]
-#[derive(Debug)]
-pub struct Results {
-    flags: ResultFlags,
-    values: ResultValue,
-}
-
-#[wasm_bindgen]
-impl Results {
-    pub fn new(flags: ResultFlags, values: ResultValue) -> Self {
-        Self { flags, values }
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn get_flags(&self) -> ResultFlags {
-        self.flags.clone()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn get_value(&self) -> ResultValue {
-        self.values.clone()
-    }
-}
-
-#[wasm_bindgen]
-#[derive(Debug, Clone, Copy)]
-pub struct ResultFlags {
-    pub zero: bool,
-    pub negative: bool,
-    pub overflow: bool,
-    pub carry: bool,
-    pub borrow: bool,
-}
-
-impl ResultFlags {
-    pub fn new(zero: bool, negative: bool, overflow: bool, carry: bool) -> Self {
-        Self {
-            zero,
-            negative,
-            overflow,
-            carry,
-            borrow: !carry,
-        }
-    }
-}
-
-#[wasm_bindgen]
-#[derive(Debug, Clone)]
-pub struct FormattedValue {
-    signed: String,
-    unsigned: String,
-    bin: String,
-    com: String,
-    hex: String,
-}
-
-#[wasm_bindgen]
-impl FormattedValue {
-    #[wasm_bindgen(getter)]
-    pub fn get_signed(&self) -> String {
-        self.signed.clone()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn get_unsigned(&self) -> String {
-        self.unsigned.clone()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn get_bin(&self) -> String {
-        self.bin.clone()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn get_com(&self) -> String {
-        self.com.clone()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn get_hex(&self) -> String {
-        self.hex.clone()
-    }
-}
-
-#[wasm_bindgen]
-pub fn format(value: i32, of: i32) -> Result<FormattedValue, JsValue> {
-    match of {
-        4 => {
-            let value = value as u8;
-            let com = !value + 1;
-            let svalue = to_i4(value);
-            Ok(FormattedValue::new4(value, svalue, com))
-        }
-        8 => {
-            let value = value as u8;
-            let com = !value + 1;
-            let svalue = value as i8;
-            Ok(FormattedValue::new(value, svalue, com))
-        }
-        16 => {
-            let value = value as u16;
-            let com = !value + 1;
-            let svalue = value as i16;
-            Ok(FormattedValue::new(value, svalue, com))
-        }
-        32 => {
-            let value = value as u32;
-            let com = !value + 1;
-            let svalue = value as i32;
-            Ok(FormattedValue::new(value, svalue, com))
-        }
-        _ => Err(JsValue::from("unsupported value")),
-    }
-}
-
-#[wasm_bindgen]
-#[derive(Debug, Clone)]
-pub struct ResultValue {
-    signed: String,
-    unsigned: String,
-    bin: String,
-    hex: String,
-}
-
-mod formatter {
-    use crate::FormattedValue;
-
-    use super::ResultValue;
-    use std::fmt::{Binary, Display, UpperHex};
-
-    impl FormattedValue {
-        pub fn new4(unsigned: u8, signed: i8, complement: u8) -> Self {
-            let res = ResultValue::new4(unsigned, signed);
-            let s = format!("{:b}", complement);
-            let mut comp = fix_size::<u8>(s, 8);
-            comp = (&comp[comp.len() - 4..]).to_string();
-
-            Self {
-                signed: res.signed,
-                unsigned: res.unsigned,
-                bin: res.bin,
-                hex: res.hex,
-                com: comp,
-            }
-        }
-
-        pub fn new<U, S>(unsigned: U, signed: S, complement: U) -> Self
-        where
-            U: num::Unsigned + Display + UpperHex + Binary,
-            S: num::Signed + Display,
-        {
-            let res = ResultValue::new(unsigned, signed);
-            let s = format!("{:b}", complement);
-            let comp = fix_size::<U>(s, 8);
-            Self {
-                signed: res.signed,
-                unsigned: res.unsigned,
-                bin: res.bin,
-                hex: res.hex,
-                com: comp,
-            }
-        }
-    }
-
-    fn fix_size<T>(s: String, mult: usize) -> String {
-        let size = std::mem::size_of::<T>() * mult;
-        format!("{}{}", "0".repeat(size - s.len()), s)
-    }
-
-    /// is split here as to have a pub new, while having some wasm_bindgen
-    /// getters.
-    impl ResultValue {
-        pub fn new<U, S>(unsigned: U, signed: S) -> Self
-        where
-            U: num::Unsigned + Display + UpperHex + Binary,
-            S: num::Signed + Display,
-        {
-            Self {
-                unsigned: format!("{}", unsigned),
-                signed: format!("{}", signed),
-                hex: fix_size::<U>(format!("{:X}", unsigned), 2),
-                bin: fix_size::<U>(format!("{:b}", unsigned), 8),
-            }
-        }
-
-        pub fn new4(unsigned: u8, signed: i8) -> Self {
-            let mut res = Self::new(unsigned, signed);
-            res.hex = (&res.hex[res.hex.len() - 1..]).to_string();
-            res.bin = (&res.bin[res.bin.len() - 4..]).to_string();
-            res
-        }
-    }
-}
-
-#[wasm_bindgen]
-impl ResultValue {
-    #[wasm_bindgen(getter)]
-    pub fn get_signed(&self) -> String {
-        self.signed.clone()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn get_unsigned(&self) -> String {
-        self.unsigned.clone()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn get_bin(&self) -> String {
-        self.bin.clone()
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn get_hex(&self) -> String {
-        self.hex.clone()
     }
 }
