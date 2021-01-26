@@ -6,7 +6,7 @@ mod logical;
 
 use addition::ADD;
 pub use api::{format, Results};
-use logical::{AND, OR, XOR};
+use logical::{AND, NAND, OR, XOR};
 use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -35,6 +35,11 @@ pub fn add(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
 #[wasm_bindgen]
 pub fn and(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
     run::<AND>(left, right, of)
+}
+
+#[wasm_bindgen]
+pub fn nand(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
+    run::<NAND>(left, right, of)
 }
 
 #[wasm_bindgen]

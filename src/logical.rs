@@ -1,4 +1,4 @@
-use std::ops::{BitAnd, BitOr, BitXor};
+use std::ops::{BitAnd, BitOr, BitXor, Not};
 
 use crate::{
     api::{ResultFlags, ResultValue},
@@ -64,13 +64,13 @@ pub struct AND;
 trait DoWork {
     fn run<T>(left: T, right: T) -> T
     where
-        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T>;
+        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T> + Not<Output = T>;
 }
 
 impl DoWork for AND {
     fn run<T>(left: T, right: T) -> T
     where
-        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T>,
+        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T> + Not<Output = T>,
     {
         left & right
     }
@@ -83,7 +83,7 @@ pub struct OR;
 impl DoWork for OR {
     fn run<T>(left: T, right: T) -> T
     where
-        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T>,
+        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T> + Not<Output = T>,
     {
         left | right
     }
@@ -96,10 +96,22 @@ pub struct XOR;
 impl DoWork for XOR {
     fn run<T>(left: T, right: T) -> T
     where
-        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T>,
+        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T> + Not<Output = T>,
     {
         left ^ right
     }
 }
 
 functs!(XOR);
+
+pub struct NAND;
+
+impl DoWork for NAND {
+    fn run<T>(left: T, right: T) -> T
+    where
+        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T> + Not<Output = T> {
+            !AND::run(left, right)
+    }
+}
+
+functs!(NAND);
