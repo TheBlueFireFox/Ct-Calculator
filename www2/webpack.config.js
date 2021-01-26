@@ -11,6 +11,6 @@ module.exports = {
   mode: "development",
   plugins: [
     new CleanWebpackPlugin(),
-    new CopyWebpackPlugin(['index.html', 'style.css'])
+    new CopyWebpackPlugin(['index.html', 'style.css', 'favicon.png', 'apfelringe.png'])
   ],
 };
