@@ -57,6 +57,16 @@ div.flexibleBox {
     border-radius: 5px;
 }
 
+div.flexibleBox {
+    display: inline-block;
+    float: left;
+    padding: 15px;
+    margin: 15px;
+
+    background-color: white;
+    border-radius: 5px;
+}
+
 td {
     padding: 3px;
 }
