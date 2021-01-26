@@ -39,7 +39,7 @@
                     <td>
                         Decimal
                     </td>
-                    <td>
+                    <td class="IOField">
                         <input type="text" id="inputLeftDecimal" name="inputLeftDecimal" class="textBox"
                                oninput="this.value=this.value.replace(/(?![0-9])./gmi,'')">
                     </td>
@@ -48,7 +48,7 @@
                     <td>
                         Binary
                     </td>
-                    <td>
+                    <td class="IOField">
                         <input type="text" id="inputLeftBinary" name="inputLeftBinary" class="textBox"
                                oninput="this.value=this.value.replace(/(?![01])./gmi,'')">
                     </td>
@@ -57,7 +57,7 @@
                     <td>
                         2C
                     </td>
-                    <td>
+                    <td class="IOField">
                         <input type="text" id="inputLeft2C" name="inputLeft2C" disabled class="textBox">
                     </td>
                 </tr>
@@ -65,7 +65,7 @@
                     <td>
                         Hexadecimal
                     </td>
-                    <td>
+                    <td class="IOField">
                         <input type="text" id="inputLeftHexadecimal" name="inputLeftHexadecimal" class="textBox"
                                oninput="this.value=this.value.replace(/(?![0-9A-Fa-f])./gmi,'')">
                     </td>
@@ -73,15 +73,15 @@
             </table>
 
         </div>
-        <div class="thinBox">
+        <div class="operatorBox">
             <input type="radio" id="plus" class="radioButton" name="operation" value="plus" checked>
             <label for="plus">+</label><br>
             <input type="radio" id="minus" class="radioButton" name="operation" value="minus">
-            <label for="minus">-</label>
+            <label for="minus">-</label><br>
             <input type="radio" id="and" class="radioButton" name="operation" value="and">
-            <label for="and">and</label>
+            <label for="and">and</label><br>
             <input type="radio" id="or" class="radioButton" name="operation" value="or">
-            <label for="or">or</label>
+            <label for="or">or</label><br>
             <input type="radio" id="xor" class="radioButton" name="operation" value="xor">
             <label for="xor">xor</label>
         </div>
@@ -92,7 +92,7 @@
                     <td>
                         Decimal
                     </td>
-                    <td>
+                    <td class="IOField">
                         <input type="text" id="inputRightDecimal" name="inputRightDecimal" class="textBox"
                                oninput="this.value=this.value.replace(/(?![0-9])./gmi,'')">
                     </td>
@@ -101,7 +101,7 @@
                     <td>
                         Binary
                     </td>
-                    <td>
+                    <td class="IOField">
                         <input type="text" id="inputRightBinary" name="inputRightBinary" class="textBox"
                                oninput="this.value=this.value.replace(/(?![01])./gmi,'')">
                     </td>
@@ -110,7 +110,7 @@
                     <td>
                         2C
                     </td>
-                    <td>
+                    <td class="IOField">
                         <input type="text" id="inputRight2C" name="inputRight2C" disabled class="textBox">
                     </td>
                 </tr>
@@ -118,7 +118,7 @@
                     <td>
                         Hexadecimal
                     </td>
-                    <td>
+                    <td class="IOField">
                         <input type="text" id="inputRightHexadecimal" name="inputRightHexadecimal" class="textBox"
                                oninput="this.value=this.value.replace(/(?![0-9A-Fa-f])./gmi,'')">
                     </td>
@@ -132,31 +132,31 @@
                     <td>
                         Signed Decimal
                     </td>
-                    <td>
-                        <input type="text" id="signed" name="signed" disabled class="textBox">
+                    <td class="IOField">
+                        <input type="text" id="signed" name="signed"  class="textBox" disabled>
                     </td>
                 </tr>
                 <tr>
                     <td>
                         Unsigned Decimal
                     </td>
-                    <td>
-                        <input type="text" id="unsigned" name="unsigned" disabled class="textBox">
+                    <td class="IOField">
+                        <input type="text" id="unsigned" name="unsigned" class="textBox" disabled>
                     </td>
                 </tr>
                 <tr>
                     <td>
                         Binary
                     </td>
-                    <td>
-                        <input type="text" id="outputBinary" name="outputBinary" disabled class="textBox">
+                    <td class="IOField">
+                        <input type="text" id="outputBinary" name="outputBinary"  class="textBox" disabled>
                     </td>
                 </tr>
                 <tr>
                     <td>
                         Hexadecimal
                     </td>
-                    <td>
+                    <td class="IOField">
                         <input type="text" id="outputHexadecimal" name="outputHexadecimal" disabled class="textBox">
                     </td>
                 </tr>

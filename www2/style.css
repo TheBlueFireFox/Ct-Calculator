@@ -29,6 +29,7 @@ div.fullWidth {
 
 div.box {
     float: left;
+    display: inline-block;
     width: 320px;
     padding: 15px;
     margin: 15px;
@@ -37,12 +38,11 @@ div.box {
     border-radius: 5px;
 }
 
-div.thinBox {
+div.operatorBox {
     float: left;
-    width: 50px;
+    display: inline-block;
     padding: 15px;
     margin: 15px;
-
     background-color: white;
     border-radius: 5px;
 }
@@ -76,11 +76,16 @@ h2 {
 }
 
 input.textBox {
-    width: 200px;
+    width: 100%;
     background-color: whitesmoke;
     border: white;
     border-radius: 5px;
     padding: 5px;
+}
+
+.IOField {
+    width: 95%;
+    padding-right: 10px
 }
 
 @media screen and (max-width: 768px) {
