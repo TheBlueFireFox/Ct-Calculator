@@ -6,7 +6,7 @@ const inputFields = [
     ['Hexadecimal', 16]
 ]
 
-const OPERATION = [["plus", "add"], ["minus", "subtract"]];
+const OPERATION = [["plus", "add"], ["minus", "subtract"], ["and", "and"], ["or", "or"], ["xor", "xor"]];
 
 var chosenBits = 4
 var operation = 'add'
@@ -117,6 +117,15 @@ function calculateResult() {
             break
         case "subtract":
             res = wasm.sub(left, right, chosenBits)
+            break
+        case "and":
+            res = wasm.and(left, right, chosenBits)
+            break
+        case "or":
+            res = wasm.or(left, right, chosenBits)
+            break
+        case "xor":
+            res = wasm.xor(left, right, chosenBits)
             break
         default:
             console.log("No clue how you landed here pall.")
