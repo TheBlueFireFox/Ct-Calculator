@@ -27,6 +27,7 @@ div#flags {
 
 div.fullWidth {
     float: left;
+    width: 100%;
 }
 
 
@@ -56,7 +57,15 @@ h1 {
     align-content: center;
 }
 
-input.textbox {
+h2 {
+    font-size: small;
+    color: darkgray;
+    float: left;
+    font-style: italic;
+    font-weight: lighter;
+}
+
+input.textBox {
     width: 200px;
     background-color: whitesmoke;
     border: white;
@@ -65,8 +74,18 @@ input.textbox {
 }
 
 @media screen and (max-width: 768px) {
+    body{
+        background: whitesmoke;
+    }
+
+    div.box{
+        width: 85%;
+    }
+
     div#main {
-        margin: 5px;
+        margin: 0;
+        padding: 15px;
+
         box-shadow: none;
     }
 }

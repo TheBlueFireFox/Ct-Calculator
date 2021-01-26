@@ -2,203 +2,209 @@
 <html>
 
 <head>
-  <meta charset="UTF-8">
-  <title>The chaddest CT Calc</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>CT ARM cortex M0 chad-culator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="favicon.png" sizes="32x32">
+    <link rel="apple-touch-icon" sizes="32x32" href="apfelringe.png">
+
 </head>
 
 <body>
-  <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
-  <script src="./bootstrap.js"></script>
-  <div id="main">
-    <h1>CT Rechner</h1>
+<noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+<script src="./bootstrap.js"></script>
+<div id="main">
     <div class="fullWidth">
-      <div class="box">
-        <input type="radio" id="4bit" name="bitAmount" value="4bit" checked>
-        <label for="4bit">4bit</label>
-        <input type="radio" id="8bit" name="bitAmount" value="8bit">
-        <label for="8bit">8bit</label>
-        <input type="radio" id="16bit" name="bitAmount" value="16bit">
-        <label for="16bit">16bit</label>
-        <input type="radio" id="32bit" name="bitAmount" value="32bit">
-        <label for="32bit">32bit</label>
-      </div>
+        <h1>CT Calculator</h1>
+        <h2>The chaddest, peak tanner ARM cortex M0 chad-culator / arithmetic emulator on the interwebz. - © Olichu & Adichu</h2>
+    </div>
+    <div class="fullWidth">
+        <div class="box">
+            <input type="radio" id="4bit" class="radioButton" name="bitAmount" value="4bit" checked>
+            <label for="4bit">4bit</label>
+            <input type="radio" id="8bit" class="radioButton" name="bitAmount" value="8bit">
+            <label for="8bit">8bit</label>
+            <input type="radio" id="16bit" class="radioButton" name="bitAmount" value="16bit">
+            <label for="16bit">16bit</label>
+            <input type="radio" id="32bit" class="radioButton" name="bitAmount" value="32bit">
+            <label for="32bit">32bit</label>
+        </div>
     </div>
 
     <div class="fullWidth">
 
-      <div class="box">
-        <h3>Input</h3>
-        <table>
-          <tr>
-            <td>
-              Decimal
-            </td>
-            <td>
-              <input type="text" id="inputLeftDecimal" name="inputLeftDecimal" class="textbox"
-                oninput="this.value=this.value.replace(/(?![0-9])./gmi,'')">
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Binary
-            </td>
-            <td>
-              <input type="text" id="inputLeftBinary" name="inputLeftBinary" class="textbox"
-                oninput="this.value=this.value.replace(/(?![01])./gmi,'')">
-            </td>
-          </tr>
-          <tr>
-            <td>
-              2C
-            </td>
-            <td>
-              <input type="text" id="inputLeft2C" name="inputLeft2C" disabled class="textbox">
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Hexadecimal
-            </td>
-            <td>
-              <input type="text" id="inputLeftHexadecimal" name="inputLeftHexadecimal" class="textbox"
-                oninput="this.value=this.value.replace(/(?![0-9A-Fa-f])./gmi,'')">
-            </td>
-          </tr>
-        </table>
+        <div class="box">
+            <h3>Input</h3>
+            <table>
+                <tr>
+                    <td>
+                        Decimal
+                    </td>
+                    <td>
+                        <input type="text" id="inputLeftDecimal" name="inputLeftDecimal" class="textBox"
+                               oninput="this.value=this.value.replace(/(?![0-9])./gmi,'')">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Binary
+                    </td>
+                    <td>
+                        <input type="text" id="inputLeftBinary" name="inputLeftBinary" class="textBox"
+                               oninput="this.value=this.value.replace(/(?![01])./gmi,'')">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        2C
+                    </td>
+                    <td>
+                        <input type="text" id="inputLeft2C" name="inputLeft2C" disabled class="textBox">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Hexadecimal
+                    </td>
+                    <td>
+                        <input type="text" id="inputLeftHexadecimal" name="inputLeftHexadecimal" class="textBox"
+                               oninput="this.value=this.value.replace(/(?![0-9A-Fa-f])./gmi,'')">
+                    </td>
+                </tr>
+            </table>
 
-      </div>
-      <div class="thinBox">
-        <input type="radio" id="plus" name="operation" value="plus" checked>
-        <label for="plus">+</label><br>
-        <input type="radio" id="minus" name="operation" value="minus">
-        <label for="minus">-</label>
-      </div>
-      <div class="box">
-        <h3>Operand</h3>
-        <table>
-          <tr>
-            <td>
-              Decimal
-            </td>
-            <td>
-              <input type="text" id="inputRightDecimal" name="inputRightDecimal" class="textbox"
-                oninput="this.value=this.value.replace(/(?![0-9])./gmi,'')">
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Binary
-            </td>
-            <td>
-              <input type="text" id="inputRightBinary" name="inputRightBinary" class="textbox"
-                oninput="this.value=this.value.replace(/(?![01])./gmi,'')">
-            </td>
-          </tr>
-          <tr>
-            <td>
-              2C
-            </td>
-            <td>
-              <input type="text" id="inputRight2C" name="inputRight2C" disabled class="textbox">
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Hexadecimal
-            </td>
-            <td>
-              <input type="text" id="inputRightHexadecimal" name="inputRightHexadecimal" class="textbox"
-                oninput="this.value=this.value.replace(/(?![0-9A-Fa-f])./gmi,'')">
-            </td>
-          </tr>
-        </table>
-      </div>
+        </div>
+        <div class="thinBox">
+            <input type="radio" id="plus" class="radioButton" name="operation" value="plus" checked>
+            <label for="plus">+</label><br>
+            <input type="radio" id="minus" class="radioButton" name="operation" value="minus">
+            <label for="minus">-</label>
+        </div>
+        <div class="box">
+            <h3>Operand</h3>
+            <table>
+                <tr>
+                    <td>
+                        Decimal
+                    </td>
+                    <td>
+                        <input type="text" id="inputRightDecimal" name="inputRightDecimal" class="textBox"
+                               oninput="this.value=this.value.replace(/(?![0-9])./gmi,'')">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Binary
+                    </td>
+                    <td>
+                        <input type="text" id="inputRightBinary" name="inputRightBinary" class="textBox"
+                               oninput="this.value=this.value.replace(/(?![01])./gmi,'')">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        2C
+                    </td>
+                    <td>
+                        <input type="text" id="inputRight2C" name="inputRight2C" disabled class="textBox">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Hexadecimal
+                    </td>
+                    <td>
+                        <input type="text" id="inputRightHexadecimal" name="inputRightHexadecimal" class="textBox"
+                               oninput="this.value=this.value.replace(/(?![0-9A-Fa-f])./gmi,'')">
+                    </td>
+                </tr>
+            </table>
+        </div>
 
-      <div class="box">
-        <h3>Result</h3>
-        <table>
-          <tr>
-            <td>
-              Signed Decimal
-            </td>
-            <td>
-              <input type="text" id="signed" name="signed" disabled class="textbox">
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Unsigned Decimal
-            </td>
-            <td>
-              <input type="text" id="unsigned" name="unsigned" disabled class="textbox">
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Binary
-            </td>
-            <td>
-              <input type="text" id="outputBinary" name="outputBinary" disabled class="textbox">
-            </td>
-          </tr>
-          <tr>
-            <td>
-              Hexadecimal
-            </td>
-            <td>
-              <input type="text" id="outputHexadecimal" name="outputHexadecimal" disabled class="textbox">
-            </td>
-          </tr>
-        </table>
-      </div>
-      <div id="flags" class="box">
-        <h3>Flags</h3>
-        <table>
-          <tr>
-            <td>
-              <b>Z</b> Zero
-            </td>
-            <td>
-              <span id="flagZero">1</span>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <b>N</b> Negative
-            </td>
-            <td>
-              <span id="flagNegative">1</span>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <b>V</b> Overflow
-            </td>
-            <td>
-              <span id="flagOverflow">0</span>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <b>C</b> Carry
-            </td>
-            <td>
-              <span id="flagCarry">0</span>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <b>B</b> Borrow
-            </td>
-            <td>
-              <span id="flagBorrow">0</span>
-            </td>
-          </tr>
-        </table>
-      </div>
+        <div class="box">
+            <h3>Result</h3>
+            <table>
+                <tr>
+                    <td>
+                        Signed Decimal
+                    </td>
+                    <td>
+                        <input type="text" id="signed" name="signed" disabled class="textBox">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Unsigned Decimal
+                    </td>
+                    <td>
+                        <input type="text" id="unsigned" name="unsigned" disabled class="textBox">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Binary
+                    </td>
+                    <td>
+                        <input type="text" id="outputBinary" name="outputBinary" disabled class="textBox">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Hexadecimal
+                    </td>
+                    <td>
+                        <input type="text" id="outputHexadecimal" name="outputHexadecimal" disabled class="textBox">
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="flags" class="box">
+            <h3>Flags</h3>
+            <table>
+                <tr>
+                    <td>
+                        <b>Z</b> Zero
+                    </td>
+                    <td>
+                        <span id="flagZero">1</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <b>N</b> Negative
+                    </td>
+                    <td>
+                        <span id="flagNegative">1</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <b>V</b> Overflow
+                    </td>
+                    <td>
+                        <span id="flagOverflow">0</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <b>C</b> Carry
+                    </td>
+                    <td>
+                        <span id="flagCarry">0</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <b>B</b> Borrow
+                    </td>
+                    <td>
+                        <span id="flagBorrow">0</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </div>
-  </div>
+</div>
 </body>
 
 </html>
