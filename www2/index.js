@@ -6,7 +6,7 @@ const inputFields = [
     ['Hexadecimal', 16]
 ]
 
-const OPERATION = [["plus", "add"], ["minus", "subtract"], ["and", "and"], ["or", "or"], ["xor", "xor"], ["tst", "and"], ["cmp", "subtract"]];
+const OPERATION = [["plus", "add"], ["minus", "sub"], ["and", "and"], ["or", "or"], ["xor", "xor"], ["tst", "and"], ["cmp", "sub"]];
 
 var chosenBits = 4
 var operation = 'add'
@@ -115,7 +115,7 @@ function calculateResult() {
         case "add":
             res = wasm.add(left, right, chosenBits)
             break
-        case "subtract":
+        case "sub":
             res = wasm.sub(left, right, chosenBits)
             break
         case "and":
@@ -222,6 +222,7 @@ function main() {
         document.getElementById(sign).addEventListener('click', () => {
             operation = op
             calculateResult()
+            resetCond()
         })
     }
 
