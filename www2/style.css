@@ -88,6 +88,10 @@ input.textBox {
     padding-right: 10px
 }
 
+.radioButton {
+    margin: 3px;
+}
+
 @media screen and (max-width: 768px) {
     body{
         background: whitesmoke;
