@@ -5,6 +5,16 @@ use crate::{
     utils, Results, Supported,
 };
 
+trait DoWork {
+    fn run<T>(left: T, right: T) -> T
+    where
+        T: num::Unsigned
+            + BitAnd<Output = T>
+            + BitOr<Output = T>
+            + BitXor<Output = T>
+            + Not<Output = T>;
+}
+
 macro_rules! working {
     ($name:tt, $main_type:ty, $second_type:ty) => {
         fn $name(left: i32, right: i32) -> Results {
@@ -50,7 +60,21 @@ macro_rules! workingu4 {
 }
 
 macro_rules! functs {
-    ($name:ident) => {
+    ($name:ident |$lhs:ident, $rlhs:ident| $body:block) => {
+        pub struct $name;
+        impl DoWork for $name {
+            fn run<T>(left: T, right: T) -> T
+            where
+                T: num::Unsigned
+                    + BitAnd<Output = T>
+                    + BitOr<Output = T>
+                    + BitXor<Output = T>
+                    + Not<Output = T>,
+            {
+                let do_work = |$lhs, $rlhs| $body;
+                do_work(left, right)
+            }
+        }
         impl Supported for $name {
             workingu4!();
             working!(new8, u8, i8);
@@ -60,58 +84,10 @@ macro_rules! functs {
     };
 }
 
-pub struct AND;
-trait DoWork {
-    fn run<T>(left: T, right: T) -> T
-    where
-        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T> + Not<Output = T>;
-}
+functs!(AND | left, right | { left + right });
 
-impl DoWork for AND {
-    fn run<T>(left: T, right: T) -> T
-    where
-        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T> + Not<Output = T>,
-    {
-        left & right
-    }
-}
+functs!(OR | left, right | { left + right });
 
-functs!(AND);
+functs!(XOR | left, right | { left ^ right });
 
-pub struct OR;
-
-impl DoWork for OR {
-    fn run<T>(left: T, right: T) -> T
-    where
-        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T> + Not<Output = T>,
-    {
-        left | right
-    }
-}
-
-functs!(OR);
-
-pub struct XOR;
-
-impl DoWork for XOR {
-    fn run<T>(left: T, right: T) -> T
-    where
-        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T> + Not<Output = T>,
-    {
-        left ^ right
-    }
-}
-
-functs!(XOR);
-
-pub struct NAND;
-
-impl DoWork for NAND {
-    fn run<T>(left: T, right: T) -> T
-    where
-        T: num::Unsigned + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T> + Not<Output = T> {
-            !AND::run(left, right)
-    }
-}
-
-functs!(NAND);
+functs!(NAND | left, right | { AND::run(left, right) });
