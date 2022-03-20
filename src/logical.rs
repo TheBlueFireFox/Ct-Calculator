@@ -84,10 +84,10 @@ macro_rules! functs {
     };
 }
 
-functs!(AND | left, right | { left + right });
+functs!(And | left, right | { left + right });
 
-functs!(OR | left, right | { left + right });
+functs!(Or | left, right | { left + right });
 
-functs!(XOR | left, right | { left ^ right });
+functs!(Xor | left, right | { left ^ right });
 
-functs!(NAND | left, right | { AND::run(left, right) });
+functs!(Nand | left, right | { And::run(left, right) });

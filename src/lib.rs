@@ -4,13 +4,11 @@ pub mod utils;
 mod addition;
 mod logical;
 
-use addition::ADD;
+use addition::Add;
 pub use api::{format, Results};
-use logical::{AND, NAND, OR, XOR};
+use logical::{And, Nand, Or, Xor};
 use wasm_bindgen::prelude::*;
 
-// When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
-// allocator.
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
@@ -22,35 +20,25 @@ trait Supported {
     fn new32(left: i32, right: i32) -> Results;
 }
 
+macro_rules! runner {
+    ($name:ident, $fun:ident) => {
+        #[wasm_bindgen]
+        pub fn $name(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
+            run::<$fun>(left, right, of)
+        }
+    };
+}
+
 #[wasm_bindgen]
 pub fn sub(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
     add(left, !right + 1, of)
 }
 
-#[wasm_bindgen]
-pub fn add(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
-    run::<ADD>(left, right, of)
-}
-
-#[wasm_bindgen]
-pub fn and(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
-    run::<AND>(left, right, of)
-}
-
-#[wasm_bindgen]
-pub fn nand(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
-    run::<NAND>(left, right, of)
-}
-
-#[wasm_bindgen]
-pub fn or(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
-    run::<OR>(left, right, of)
-}
-
-#[wasm_bindgen]
-pub fn xor(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
-    run::<XOR>(left, right, of)
-}
+runner!(add, Add);
+runner!(and, And);
+runner!(nand, Nand);
+runner!(or, Or);
+runner!(xor, Xor);
 
 fn run<T: Supported>(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
     match of {

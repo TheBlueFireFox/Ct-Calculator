@@ -8,7 +8,7 @@ use {
     std::convert::TryInto,
 };
 
-pub(crate) struct ADD;
+pub(crate) struct Add;
 
 macro_rules! new {
     ($name:tt, $main_type:ty, $second_type:ty, $parent_type:ty) => {
@@ -59,7 +59,7 @@ macro_rules! new {
     };
 }
 
-impl Supported for ADD {
+impl Supported for Add {
     fn new4(left: i32, right: i32) -> Results {
         let cleft = utils::i32_to_u4(left);
         let cright = utils::i32_to_u4(right);

@@ -3,7 +3,6 @@ use wasm_bindgen::prelude::*;
 
 use crate::utils;
 
-
 #[wasm_bindgen]
 #[derive(Debug)]
 pub struct Results {
@@ -29,7 +28,7 @@ impl Results {
 }
 
 #[wasm_bindgen]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct ResultFlags {
     pub zero: bool,
     pub negative: bool,
