@@ -1,8 +1,11 @@
 [package]
 name = "ct-calculator"
 version = "0.2.0"
-authors = ["adrian"]
+authors = [ "Oliver Corrodi <corrooli@students.zhaw.ch>", "Adrian Hornung <hornuadr@students.zhaw.ch>"]
 edition = "2021"
+description = "The chaddest, most tanner ARM cortex M0 arithmetic emulator/chad-culator on the interwebz. - © Olichu & Adichu"
+repository = "https://github.zhaw.ch/hornuadr/ct-calculator"
+license = "Apache-2.0 OR MIT"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -23,8 +26,6 @@ console_error_panic_hook = { version = "0.1", optional = true }
 # `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
 # compared to the default allocator's ~10K. It is slower than the default
 # allocator, however.
-#
-# Unfortunately, `wee_alloc` requires nightly Rust when targeting wasm for now.
 wee_alloc = { version = "0.4", optional = true }
 
 [dev-dependencies]
