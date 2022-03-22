@@ -91,7 +91,7 @@ impl FormattedValue {
 pub fn format(value: i32, of: i32) -> Result<FormattedValue, JsValue> {
     match of {
         4 => {
-            let value = value as u8;
+            let value = value as u8 & 0xF;
             let com = !value + 1;
             let svalue = to_i4(value);
             Ok(FormattedValue::new4(value, svalue, com))

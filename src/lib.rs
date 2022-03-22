@@ -4,7 +4,7 @@ pub mod utils;
 mod addition;
 mod logical;
 
-use addition::Add;
+use addition::{Add, Sub};
 pub use api::{format, Results};
 use logical::{And, Nand, Or, Xor};
 use wasm_bindgen::prelude::*;
@@ -24,28 +24,20 @@ macro_rules! runner {
     ($name:ident, $fun:ident) => {
         #[wasm_bindgen]
         pub fn $name(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
-            run::<$fun>(left, right, of)
+            match of {
+                4 => Ok($fun::new4(left, right)),
+                8 => Ok($fun::new8(left, right)),
+                16 => Ok($fun::new16(left, right)),
+                32 => Ok($fun::new32(left, right)),
+                _ => Err(JsValue::from("unsupported value")),
+            }
         }
     };
 }
 
-#[wasm_bindgen]
-pub fn sub(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
-    add(left, !right + 1, of)
-}
-
 runner!(add, Add);
+runner!(sub, Sub);
 runner!(and, And);
 runner!(nand, Nand);
 runner!(or, Or);
 runner!(xor, Xor);
-
-fn run<T: Supported>(left: i32, right: i32, of: i32) -> Result<Results, JsValue> {
-    match of {
-        4 => Ok(T::new4(left, right)),
-        8 => Ok(T::new8(left, right)),
-        16 => Ok(T::new16(left, right)),
-        32 => Ok(T::new32(left, right)),
-        _ => Err(JsValue::from("unsupported value")),
-    }
-}

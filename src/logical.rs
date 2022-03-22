@@ -46,6 +46,7 @@ macro_rules! workingu4 {
             // result
             let ures = Self::run(left, right);
             let sres = utils::to_i4(ures);
+            let ures = utils::to_u4(ures);
 
             // flags
             let zero = ures == 0;
@@ -71,10 +72,11 @@ macro_rules! functs {
                     + BitXor<Output = T>
                     + Not<Output = T>,
             {
-                let do_work = |$lhs, $rlhs| $body;
+                let do_work = |$lhs: T, $rlhs: T| $body;
                 do_work(left, right)
             }
         }
+
         impl Supported for $name {
             workingu4!();
             working!(new8, u8, i8);
@@ -84,10 +86,10 @@ macro_rules! functs {
     };
 }
 
-functs!(And | left, right | { left + right });
+functs!(And | left, right | { left & right });
 
-functs!(Or | left, right | { left + right });
+functs!(Or | left, right | { left | right });
 
 functs!(Xor | left, right | { left ^ right });
 
-functs!(Nand | left, right | { And::run(left, right) });
+functs!(Nand | left, right | { !(left & right) });

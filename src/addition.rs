@@ -8,8 +8,6 @@ use {
     std::convert::TryInto,
 };
 
-pub(crate) struct Add;
-
 macro_rules! new {
     ($name:tt, $main_type:ty, $second_type:ty, $parent_type:ty) => {
         fn $name(left: i32, right: i32) -> Results {
@@ -58,6 +56,8 @@ macro_rules! new {
         }
     };
 }
+
+pub(crate) struct Add;
 
 impl Supported for Add {
     fn new4(left: i32, right: i32) -> Results {
@@ -128,4 +128,34 @@ impl Supported for Add {
     new!(new8, u8, i8, u16);
     new!(new16, u16, i16, u32);
     new!(new32, u32, i32, u64);
+}
+
+pub(crate) struct Sub;
+
+impl Sub {
+    fn conv(left: i32, right: i32) -> (i32, i32) {
+        (left, !right + 1)
+    }
+}
+
+impl Supported for Sub {
+    fn new4(left: i32, right: i32) -> Results {
+        let (left, right) = Self::conv(left, right);
+        Add::new4(left, right)
+    }
+
+    fn new8(left: i32, right: i32) -> Results {
+        let (left, right) = Self::conv(left, right);
+        Add::new8(left, right)
+    }
+
+    fn new16(left: i32, right: i32) -> Results {
+        let (left, right) = Self::conv(left, right);
+        Add::new16(left, right)
+    }
+
+    fn new32(left: i32, right: i32) -> Results {
+        let (left, right) = Self::conv(left, right);
+        Add::new32(left, right)
+    }
 }
