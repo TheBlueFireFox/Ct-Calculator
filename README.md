@@ -4,3 +4,6 @@
 This implementation is based on Rust, Wasm and JS...
 
 To use this follow [the given setup](https://rustwasm.github.io/docs/book/game-of-life/setup.html)
+
+
+This has been cloned from the university github.
